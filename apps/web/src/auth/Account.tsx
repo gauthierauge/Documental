@@ -164,6 +164,42 @@ function TwoFactor({ enabled, admin }: { enabled: boolean; admin: boolean }) {
   );
 }
 
+function Profile({ name }: { name: string }) {
+  const [newName, setNewName] = useState(name);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (newName.trim() === '') {
+      setMessage('Le nom ne peut pas être vide.');
+      return;
+    }
+    const { error } = await authClient.updateUser({ name: newName.trim() });
+    setMessage(error ? errorMessage(error) : 'Profil mis à jour.');
+  }
+
+  return (
+    <Card title="Profil">
+      <form onSubmit={save} className="ui-formulaire">
+        <Field label="Nom">
+          {(control) => (
+            <Input
+              {...control}
+              autoComplete="name"
+              required
+              maxLength={100}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          )}
+        </Field>
+        <Button type="submit">Enregistrer</Button>
+        {message && <Notice>{message}</Notice>}
+      </form>
+    </Card>
+  );
+}
+
 function ChangePassword() {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -218,6 +254,7 @@ export function Account() {
 
   return (
     <Page title="Mon compte" lede={`${user.email} · ${ROLE_LABEL[user.role]}`} narrow>
+      <Profile name={user.name} />
       <TwoFactor enabled={user.twoFactorEnabled} admin={user.role === 'admin'} />
       <ChangePassword />
       <div className="ui-actions">
