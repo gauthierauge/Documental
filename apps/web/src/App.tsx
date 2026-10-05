@@ -11,6 +11,8 @@ import { SetPassword } from './auth/SetPassword';
 import { AccountNav } from './auth/AccountNav';
 import { AdminApp } from './admin/AdminApp';
 import { AdminNav } from './admin/AdminNav';
+import { DocumentPage } from '@/documents/DocumentPage';
+import { Documents } from '@/documents/Documents';
 
 // La page « Démarrage » n'existe qu'en développement : en production, la condition vaut false
 // à la compilation et Vite ne met même pas son code dans le bundle.
@@ -19,7 +21,10 @@ const Startup = import.meta.env.DEV
   : null;
 
 /** Les pages du menu principal, dans l'ordre. En développement, l'accueil est « Démarrage ». */
-const PAGES: NavItem[] = [{ href: '/', label: Startup ? 'Démarrage' : 'Accueil' }];
+const PAGES: NavItem[] = [
+  { href: '/', label: Startup ? 'Démarrage' : 'Accueil' },
+  { href: '/documents', label: 'Documents' },
+];
 
 /** Les liens du compte dans la coquille, selon la session (et le rôle, avec le panel admin). */
 const ACCOUNT = [<AdminNav key="admin" />, <AccountNav key="compte" />];
@@ -29,6 +34,11 @@ function Screen({ path }: { path: string }) {
   if (path === '/mot-de-passe/oublie') return <ForgotPassword />;
   if (path === '/mot-de-passe/nouveau') return <SetPassword />;
   if (path === '/compte') return <Account />;
+  if (path === '/documents') return <Documents folderId={null} />;
+  const folder = /^\/documents\/dossiers\/([^/]+)$/.exec(path);
+  if (folder?.[1]) return <Documents folderId={decodeURIComponent(folder[1])} />;
+  const doc = /^\/documents\/([^/]+)$/.exec(path);
+  if (doc?.[1]) return <DocumentPage id={decodeURIComponent(doc[1])} />;
   if (path === '/')
     return Startup ? (
       <Suspense fallback={null}>

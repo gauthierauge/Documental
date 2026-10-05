@@ -18,6 +18,7 @@ import { loadSession, requireUser } from './auth/middleware';
 import { withClientIp } from './http/client-ip';
 import { betterAuthTooMany } from './http/rate-limit';
 import { adminRoutes, publicSettingsRoute } from './admin/routes';
+import { documentRoutes } from '@/documents/routes';
 
 export interface Deps {
   env: Env;
@@ -95,6 +96,7 @@ export function createApp(deps: Deps) {
   api.get('/me', requireUser(), (c) => c.json({ user: c.get('user') }));
   api.route('/admin', adminRoutes(deps, auth));
   api.route('/reglages/publics', publicSettingsRoute(deps));
+  api.route('/documents', documentRoutes(deps));
   // Page « Démarrage » (état des modules) : en développement et en test seulement.
   if (deps.env.NODE_ENV !== 'production') api.route('/demarrage', startupRoutes(deps));
 

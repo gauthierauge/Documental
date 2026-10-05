@@ -1,0 +1,60 @@
+.doc-fil ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.doc-fil li + li::before {
+  content: '/';
+  margin-inline-end: var(--espace-2);
+  color: var(--couleur-texte-attenue);
+}
+
+.doc-fil [aria-current='page'] {
+  color: var(--couleur-texte);
+  font-weight: var(--graisse-moyenne);
+}
+
+.doc-nom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+  font-weight: var(--graisse-moyenne);
+}
+
+.doc-nom::before {
+  content: '';
+  flex: none;
+  width: var(--espace-4);
+  height: var(--espace-4);
+  border: var(--trait-fin) solid var(--couleur-bordure-forte);
+  border-radius: var(--rayon-petit);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.doc-nom-folder::before {
+  border-color: var(--couleur-accent);
+  border-top-left-radius: 0;
+  background: var(--couleur-accent-doux);
+}
+
+.doc-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espace-1);
+}
+
+.doc-masque {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
