@@ -12,7 +12,6 @@ describe('bornes des requêtes', () => {
     const response = await app.request('/api/nulle-part', post(1025));
     expect(response.status).toBe(413);
     expect(await response.json()).toEqual({ error: 'Requête trop volumineuse' });
-    // Juste à la limite : la requête passe (la suite dépend des modules : 404, 403…).
     expect((await app.request('/api/nulle-part', post(1024))).status).not.toBe(413);
   });
 

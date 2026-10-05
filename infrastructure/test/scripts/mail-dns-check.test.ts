@@ -1,6 +1,5 @@
 import { checkMailDns, type DnsReader, report, senderDomain } from '@/scripts/mail-dns-check';
 
-/** Un DNS en mémoire : rien ne sort de la machine pendant les tests. */
 function dns(
   records: Partial<Record<'txt' | 'mx' | 'cname', Record<string, string[]>>>,
 ): DnsReader {

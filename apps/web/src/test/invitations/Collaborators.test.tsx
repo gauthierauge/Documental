@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { CollaboratorList } from '@documental/contracts/documents';
 import { Collaborators } from '@/invitations/Collaborators';

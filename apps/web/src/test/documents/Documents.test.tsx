@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { DocumentItem, FolderListing } from '@documental/contracts/documents';
 import { type CurrentUser, useCurrentUser } from '@/auth/client';

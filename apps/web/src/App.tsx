@@ -14,19 +14,15 @@ import { AdminNav } from './admin/AdminNav';
 import { DocumentPage } from '@/documents/DocumentPage';
 import { Documents } from '@/documents/Documents';
 
-// La page « Démarrage » n'existe qu'en développement : en production, la condition vaut false
-// à la compilation et Vite ne met même pas son code dans le bundle.
 const Startup = import.meta.env.DEV
   ? lazy(() => import('./startup/Startup').then((m) => ({ default: m.Startup })))
   : null;
 
-/** Les pages du menu principal, dans l'ordre. En développement, l'accueil est « Démarrage ». */
 const PAGES: NavItem[] = [
   { href: '/', label: Startup ? 'Démarrage' : 'Accueil' },
   { href: '/documents', label: 'Documents' },
 ];
 
-/** Les liens du compte dans la coquille, selon la session (et le rôle, avec le panel admin). */
 const ACCOUNT = [<AdminNav key="admin" />, <AccountNav key="compte" />];
 
 function Screen({ path }: { path: string }) {
@@ -52,7 +48,6 @@ function Screen({ path }: { path: string }) {
 
 export function App() {
   const path = usePath();
-  // Le panel a sa propre mise en page (menu latéral), hors de la coquille du site.
   if (path === '/admin' || path.startsWith('/admin/')) return <AdminApp />;
   return (
     <AppShell title={'Documental'} pages={PAGES} account={ACCOUNT}>

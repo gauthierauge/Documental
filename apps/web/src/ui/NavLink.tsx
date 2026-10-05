@@ -3,7 +3,6 @@ import { Link, usePath } from '@/router';
 import { isCurrent } from './navigation';
 import './ui.css';
 
-/** Un lien de navigation, dans une liste : `aria-current` signale la page ouverte. */
 export function NavLink({
   href,
   onClick,

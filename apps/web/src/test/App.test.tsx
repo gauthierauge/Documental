@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/react';
 import { App } from '@/App';
 
@@ -25,7 +24,6 @@ describe('App', () => {
       ),
     );
     render(<App />);
-    // La navigation dépend de la mise en page : ses tests sont dans tests/web/ui/AppShell.test.tsx.
     expect(screen.getByRole('link', { name: 'Aller au contenu' })).toHaveAttribute(
       'href',
       '#contenu',

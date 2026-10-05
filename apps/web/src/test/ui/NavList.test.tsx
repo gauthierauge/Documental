@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
 import { NavList } from '@/ui/NavList';
 

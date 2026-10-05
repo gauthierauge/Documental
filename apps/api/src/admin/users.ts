@@ -4,20 +4,16 @@ import type { Db } from '@/db/client';
 import { session, user } from '@/db/schema';
 import type { Role } from '@documental/contracts/admin-types';
 
-// Les comptes : on invite, on change le rôle, on retire l'accès. Pas d'inscription libre.
-
 export interface Account {
   id: string;
   email: string;
   name: string;
   role: Role;
-  /** Le facteur fort du compte (passkeys, double authentification…), null s'il n'en a pas. */
   strongFactor: string | null;
   createdAt: Date;
 }
 
 export class Accounts {
-  // oxlint-disable-next-line typescript/no-explicit-any -- requêtes communes aux deux dialectes.
   private readonly db: any;
 
   constructor(private readonly typedDb: Db) {
@@ -65,12 +61,10 @@ export class Accounts {
 
   async setRole(id: string, role: Role): Promise<void> {
     await this.db.update(user).set({ role, updatedAt: new Date() }).where(eq(user.id, id));
-    // Le nouveau rôle s'applique tout de suite : les sessions ouvertes sont fermées.
     await this.db.delete(session).where(eq(session.userId, id));
   }
 
   async remove(id: string): Promise<void> {
-    // Sessions et facteurs d'authentification partent avec le compte (suppression en cascade).
     await this.db.delete(user).where(eq(user.id, id));
   }
 

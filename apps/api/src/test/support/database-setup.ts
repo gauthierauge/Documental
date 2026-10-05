@@ -6,12 +6,6 @@ import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
 import type { TestProject } from 'vitest/node';
 
-// Démarrer PGlite (initdb en WebAssembly) coûte 2 à 3 s de calcul, trois à quatre fois plus sur
-// une machine chargée. Payé par chaque fichier de test dans le délai de son premier test, il le
-// faisait parfois dépasser. Il est fait une seule fois ici, avant les tests : la base migrée est
-// enregistrée dans un fichier que chaque fichier de test recharge en quelques centaines de
-// millisecondes (tests/database.ts). Chaque fichier garde sa propre base en mémoire.
-
 declare module 'vitest' {
   export interface ProvidedContext {
     pgliteImage?: string;

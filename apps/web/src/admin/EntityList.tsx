@@ -27,15 +27,12 @@ export function EntityList({ entity }: { entity: AdminEntity | undefined }) {
   const filterable = entity?.fields.filter((f) => f.type === 'liste') ?? [];
   const columns = entity?.fields.filter((f) => f.type !== 'texte_long').slice(0, 5) ?? [];
 
-  // Changer de contenu repart de zéro.
-  // oxlint-disable react/exhaustive-deps -- réinitialisation voulue au changement de contenu.
   useEffect(() => {
     setQ('');
     setPage(1);
     setArchived(false);
     setFilters({});
   }, [key]);
-  // oxlint-enable react/exhaustive-deps
 
   useEffect(() => {
     if (!key) return;

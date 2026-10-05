@@ -7,10 +7,6 @@ import { AuthCheck } from './AuthCheck';
 import { AdminCheck } from './AdminCheck';
 import { DockerCheck } from './DockerCheck';
 
-// La page « Démarrage » : ce que contient ce projet, l'état réel de chaque élément et le geste
-// qui le vérifie. En développement seulement : en production, l'accueil (pages/Home.tsx) la
-// remplace et ce code n'est même pas dans le bundle.
-
 export function Startup() {
   const state = useStartupState();
   return (

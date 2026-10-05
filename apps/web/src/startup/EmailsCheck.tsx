@@ -1,7 +1,6 @@
 import type { StartupState } from '@documental/contracts/startup';
 import { CHECKING, CheckCard } from './CheckCard';
 
-/** Les e-mails : affichés dans le terminal en développement, envoyés pour de vrai sinon. */
 export function EmailsCheck({ state }: { state: StartupState | null }) {
   const provider = state?.emails;
   const status = !provider

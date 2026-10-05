@@ -1,7 +1,3 @@
-/* Ce que toutes les mises en page partagent : lien d'évitement, nom de l'app, listes de liens,
-   contenu et pied de page. Uniquement des jetons (design/, compilés dans
-   src/web/design/jetons.css) ; la disposition propre à la mise en page est dans app-shell.css. */
-
 .ui-evitement {
   position: absolute;
   inset-inline-start: var(--espace-3);

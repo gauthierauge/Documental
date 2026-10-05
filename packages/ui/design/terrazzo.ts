@@ -6,11 +6,6 @@ import {
   type Plugin,
 } from '@terrazzo/parser';
 
-// La configuration Terrazzo commune au kit et aux projets : la porte qualité du design system
-// (`tz build` échoue si une règle casse : un thème illisible ne part jamais en production) et
-// la façon d'écrire les modes clair et sombre en CSS.
-
-/** Les paires texte / fond réellement utilisées par les écrans : contraste AA (4,5:1). */
 const TEXT_PAIRS: [string, string][] = [
   ...['fond', 'surface', 'surface-elevee', 'surface-enfoncee'].flatMap((bg): [string, string][] => [
     ['couleur.texte', `couleur.${bg}`],
@@ -40,7 +35,6 @@ const TEXT_PAIRS: [string, string][] = [
   ]),
 ];
 
-/** Les éléments d'interface qui doivent se voir sur leur fond : 3:1 (WCAG 1.4.11). */
 const UI_PAIRS: [string, string][] = [
   ['couleur.focus', 'couleur.fond'],
   ['couleur.focus', 'couleur.surface'],
@@ -56,15 +50,12 @@ const PAIRS = [
 
 export const rules: Record<string, LintRuleShorthand | LintRuleLonghand> = {
   'a11y/min-contrast': ['error', { level: 'AA', pairs: PAIRS }],
-  // 12 px au plus petit, même pour une légende.
   'a11y/min-font-size': ['error', { minSizeRem: 0.75 }],
   'core/required-type': 'error',
   'core/consistent-naming': ['error', { format: 'kebab-case' }],
-  // sRGB : chaque couleur s'affiche pareil sur tous les écrans et son hex de secours est exact.
   'core/max-gamut': ['error', { gamut: 'srgb' }],
 };
 
-/** « Pair 3 failed » devient « couleur.lien sur couleur.fond » : on voit tout de suite quoi corriger. */
 function explain(message: string): string {
   const lines = message.split('\n').map((line) =>
     line.replace(/Pair (\d+) failed/, (all, n: string) => {
@@ -75,12 +66,6 @@ function explain(message: string): string {
   return [...new Set(lines.filter((line) => line.trim()))].join('\n');
 }
 
-/**
- * Terrazzo ne passe le lint que sur la variante par défaut du resolver. Ce plugin passe les
- * mêmes règles sur chaque variante (clair et sombre, et chaque thème dans le kit) : une seule
- * paire illisible, où qu'elle soit, arrête `tz build`. (Le lint d'origine est coupé dans la
- * config : il ne ferait que répéter la variante par défaut, avec des messages moins clairs.)
- */
 export function lintEveryVariant(): Plugin {
   let config: ConfigInit | undefined;
   return {
@@ -112,13 +97,8 @@ export function lintEveryVariant(): Plugin {
   };
 }
 
-/** Les jetons qui changent avec le mode : seuls eux sont réécrits pour le mode sombre. */
 const DARK = ['couleur.**', 'ombre.**'];
 
-/**
- * Les variantes CSS : clair par défaut ; sombre si le système le demande, sauf si le visiteur a
- * choisi « clair » (data-theme sur <html>) ; sombre toujours si le visiteur l'a choisi.
- */
 export function cssModes() {
   return [
     {

@@ -8,9 +8,6 @@ import {
   type FieldConfig,
 } from '@documental/contracts/admin-types';
 
-// Tests génériques : ils lisent admin.config.ts, donc un contenu ajouté est testé d'office
-// (création, validation, droits, archivage, export, journal).
-
 const ORIGIN = 'http://localhost:5173';
 type App = Awaited<ReturnType<typeof testApp>>;
 
@@ -56,7 +53,6 @@ function sample(field: FieldConfig, n: number): unknown {
   }
 }
 
-/** Une ligne valide ; les liens obligatoires reçoivent une ligne liée créée pour l'occasion. */
 async function validValues(
   t: App,
   cookie: string,
@@ -194,7 +190,6 @@ describe('Panel admin', () => {
           expect(response.status).toBe(200);
           expect(response.headers.get('content-type')).toContain('text/csv');
           const bytes = new Uint8Array(await response.arrayBuffer());
-          // BOM UTF-8 : Excel lit les accents correctement.
           expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
           expect(new TextDecoder().decode(bytes).startsWith('Identifiant;')).toBe(true);
         },
@@ -244,7 +239,6 @@ describe('Panel admin', () => {
         body: { email, role: 'editeur' },
       });
       expect(invited.status).toBe(201);
-      // Sans lien (connexion par un fournisseur), l'invitation n'envoie rien : la personne se connecte seule.
       if (INVITATION_LINK) expect(lastInvitationLink(t, email)).toContain(INVITATION_LINK);
       else expect(lastInvitationLink(t, email)).toBeNull();
       const { id } = (await invited.json()) as { id: string };
@@ -252,10 +246,8 @@ describe('Panel admin', () => {
         accounts: { id: string; strongFactor: string | null }[];
       };
       expect(list.accounts.find((a) => a.id === id)?.strongFactor).toBeNull();
-      // L'admin connecté avec son facteur fort le voit affiché (passkeys, double authentification, fournisseur).
       const self = (await (await call(t, cookie, '/meta')).json()) as { user: { id: string } };
       expect(list.accounts.find((a) => a.id === self.user.id)?.strongFactor).toBeTruthy();
-      // Une adresse que la méthode de connexion refuserait (domaine non autorisé…) n'est pas invitée.
       const outsider = 'quelquun@autre-domaine.invalid';
       const refused = await call(t, cookie, '/comptes', {
         method: 'POST',

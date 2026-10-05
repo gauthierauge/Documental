@@ -4,13 +4,7 @@ import { contentTables } from '@/db/schema';
 import type { EntityConfig } from '@documental/contracts/admin-types';
 import { titleField } from '@documental/contracts/admin-types';
 
-// Accès générique aux contenus du panel. Drizzle type chaque table à part ; ici toutes sont
-// traitées de la même façon, donc le typage est relâché à cet endroit seulement. Les requêtes
-// restent celles du query builder, identiques en PostgreSQL et en SQLite.
-
-// oxlint-disable-next-line typescript/no-explicit-any -- table choisie à l'exécution, colonnes lues par nom.
 type AnyTable = any;
-// oxlint-disable-next-line typescript/no-explicit-any -- le query builder commun aux deux dialectes.
 type AnyDb = any;
 
 export type Row = Record<string, unknown> & { id: string };
@@ -64,7 +58,6 @@ export class ContentStore {
     const t = this.table(entity);
     const perPage = Math.min(Math.max(query.perPage ?? 25, 1), 100);
     const page = Math.max(query.page ?? 1, 1);
-    // Par défaut : le plus récent d'abord, d'après le premier champ date s'il y en a un.
     const dateField = entity.fields.find((f) => f.type === 'date')?.key;
     const requested =
       query.sort && entity.fields.some((f) => f.key === query.sort) ? query.sort : undefined;
@@ -124,7 +117,6 @@ export class ContentStore {
     return row ?? null;
   }
 
-  /** Les choix d'un champ lien : identifiant et libellé des lignes non archivées. */
   async options(entity: EntityConfig): Promise<{ id: string; label: string }[]> {
     const t = this.table(entity);
     const title = titleField(entity);

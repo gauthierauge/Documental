@@ -1,7 +1,5 @@
 import type { AdminConfig } from './admin-types';
 
-// Le panel admin, décrit par des réglages. Ajoute un contenu avec `kit admin ajouter`
-// (il crée aussi la table), ou modifie directement les libellés, droits et réglages ici.
 export const adminConfig: AdminConfig = {
   entities: [
     {

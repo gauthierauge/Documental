@@ -4,6 +4,7 @@
     "rootDir": ".",
     "outDir": "../../node_modules/.cache/tsc/apps-web",
     "tsBuildInfoFile": "../../node_modules/.cache/tsc/apps-web.tsbuildinfo",
+    "types": ["bun", "vitest/globals", "@testing-library/jest-dom", "vite/client"],
     "paths": {
       "@/*": ["./src/*"],
       "@documental/contracts/*": ["./../../packages/contracts/src/*"],

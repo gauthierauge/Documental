@@ -65,7 +65,6 @@ describe('make smoke', () => {
       ok: false,
       detail: 'système de fichiers modifiable',
     });
-    // Refusé par les droits (EACCES), pas par la lecture seule : la preuve manque.
     expect(readOnlyCheck('EACCES\n').ok).toBe(false);
   });
 });

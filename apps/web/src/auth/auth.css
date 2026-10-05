@@ -1,4 +1,3 @@
-/* La double authentification : QR code et codes de secours. Couleurs et tailles des jetons. */
 .auth-qr {
   width: calc(var(--espace-8) * 3);
   height: calc(var(--espace-8) * 3);

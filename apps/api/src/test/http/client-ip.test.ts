@@ -19,7 +19,6 @@ describe('adresse IP du visiteur', () => {
   });
 
   it('avec x-forwarded-for, remonte du nombre de proxys de confiance', () => {
-    // Le client a écrit 1.1.1.1 lui-même ; le premier proxy a ajouté l'adresse réelle.
     const chain = headers({ 'x-forwarded-for': '1.1.1.1, 203.0.113.7, 10.0.0.9' });
     expect(resolveClientIp(chain, SOCKET, { trust: 'x-forwarded-for', hops: 1 })).toBe('10.0.0.9');
     expect(resolveClientIp(chain, SOCKET, { trust: 'x-forwarded-for', hops: 2 })).toBe(

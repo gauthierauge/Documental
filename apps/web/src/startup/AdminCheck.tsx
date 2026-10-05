@@ -2,7 +2,6 @@ import { useCurrentUser } from '@/auth/client';
 import { ButtonLink } from '@/ui/Button';
 import { CheckCard } from './CheckCard';
 
-/** Le panel admin : ouvert aux comptes admin et éditeur. */
 export function AdminCheck() {
   const { user, pending } = useCurrentUser();
   const allowed = user !== null && user.role !== 'lecteur';

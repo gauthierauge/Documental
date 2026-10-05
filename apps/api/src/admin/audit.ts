@@ -2,9 +2,6 @@ import { count, desc, eq } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { auditLog } from '@/db/schema';
 
-// Le journal d'activité : qui a changé quoi, et quand. Toujours actif, impossible à couper
-// depuis le panel. Il garde l'adresse de l'auteur, même après la suppression de son compte.
-
 export interface Actor {
   id: string;
   email: string;
@@ -34,7 +31,6 @@ export class AuditLog {
       changes?: unknown;
     },
   ): Promise<void> {
-    // oxlint-disable-next-line typescript/no-explicit-any -- insertion commune aux deux dialectes.
     await (this.db as any).insert(auditLog).values({
       userId: actor.id,
       userEmail: actor.email,
@@ -51,7 +47,6 @@ export class AuditLog {
     perPage = 50,
     entity?: string,
   ): Promise<{ rows: AuditEntry[]; total: number }> {
-    // oxlint-disable-next-line typescript/no-explicit-any -- requêtes communes aux deux dialectes.
     const db = this.db as any;
     const where = entity ? eq(auditLog.entity, entity) : undefined;
     const rows = await db
@@ -66,7 +61,6 @@ export class AuditLog {
   }
 }
 
-/** Les champs qui ont changé, avant et après : ce que le journal affiche. */
 export function diff(
   before: Record<string, unknown>,
   after: Record<string, unknown>,

@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
 import { AdminNav } from '@/admin/AdminNav';
 import { type CurrentUser, useCurrentUser } from '@/auth/client';

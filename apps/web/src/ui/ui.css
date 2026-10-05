@@ -1,7 +1,3 @@
-/* Les composants de base. Aucune valeur en dur : tout vient des jetons (design/, compilés
-   dans src/web/design/jetons.css). Changer de thème ou de mode ne touche pas ce fichier. */
-
-/* --- Liens de navigation (coquille de l'app et panel admin) ---------------------------------- */
 .ui-nav-lien {
   display: flex;
   align-items: center;
@@ -24,14 +20,12 @@
   color: var(--navigation-texte-actif);
 }
 
-/* --- Apparence ---------------------------------------------------------------------------- */
 .ui-apparence {
   display: inline-flex;
   align-items: center;
   gap: var(--espace-2);
 }
 
-/* --- Page ------------------------------------------------------------------------------- */
 .ui-page {
   display: flex;
   flex-direction: column;
@@ -54,7 +48,6 @@
   color: var(--couleur-texte-attenue);
 }
 
-/* --- Boutons ------------------------------------------------------------------------------ */
 .ui-bouton {
   display: inline-flex;
   align-items: center;
@@ -69,7 +62,6 @@
   cursor: pointer;
 }
 
-/* Les animations ne jouent que si le visiteur ne les a pas réduites. */
 @media (prefers-reduced-motion: no-preference) {
   .ui-bouton {
     transition: background-color var(--duree-rapide) var(--courbe-standard);
@@ -133,7 +125,6 @@
   gap: var(--espace-3);
 }
 
-/* --- Champs ------------------------------------------------------------------------------- */
 .ui-formulaire {
   display: flex;
   flex-direction: column;
@@ -199,7 +190,6 @@
   accent-color: var(--couleur-accent);
 }
 
-/* --- Cartes ------------------------------------------------------------------------------- */
 .ui-carte {
   display: flex;
   flex-direction: column;
@@ -234,7 +224,6 @@
   margin: 0;
 }
 
-/* --- Tableaux ----------------------------------------------------------------------------- */
 .ui-tableau-cadre {
   overflow-x: auto;
   border: var(--trait-fin) solid var(--carte-bordure);
@@ -271,7 +260,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Pastilles et messages ---------------------------------------------------------------- */
 .ui-badge {
   display: inline-flex;
   align-items: center;
@@ -329,7 +317,6 @@
   color: var(--badge-danger-texte);
 }
 
-/* --- État vide ---------------------------------------------------------------------------- */
 .ui-vide {
   display: flex;
   flex-direction: column;

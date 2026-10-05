@@ -9,10 +9,6 @@ import { useMenu } from './useMenu';
 import './shell.css';
 import './app-shell.css';
 
-// Mise en page « Barre latérale + barre du haut » : les pages dans une colonne à gauche,
-// repliable ; en haut du contenu, la recherche de page et le compte. Sur téléphone, la colonne
-// devient une barre (nom, bouton Menu) au-dessus de la barre du haut.
-
 export function AppShell({
   title,
   pages,
@@ -21,7 +17,6 @@ export function AppShell({
 }: {
   title: string;
   pages: NavItem[];
-  /** Les liens du compte (connexion, compte, admin), dans la barre du haut. */
   account?: ReactNode;
   children: ReactNode;
 }) {

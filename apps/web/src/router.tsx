@@ -1,9 +1,5 @@
 import { type AnchorHTMLAttributes, useSyncExternalStore } from 'react';
 
-// Un routeur minimal sur l'historique du navigateur : assez pour quelques écrans, sans
-// dépendance. Si l'app grandit (routes imbriquées, chargement par route), passer à
-// TanStack Router ou React Router, et l'écrire dans une décision.
-
 const listeners = new Set<() => void>();
 
 function subscribe(listener: () => void) {

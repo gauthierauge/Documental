@@ -5,7 +5,6 @@ import { CheckCard } from './CheckCard';
 
 const ROLE_LABEL = { admin: 'admin', editeur: 'éditeur', lecteur: 'lecteur' } as const;
 
-/** La connexion : la session en cours, l'écran de connexion et le premier compte admin. */
 export function AuthCheck() {
   const { user, pending } = useCurrentUser();
   const status = pending

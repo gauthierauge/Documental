@@ -1,17 +1,8 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import { routePath } from 'hono/route';
 
-// Une ligne JSON par requête, lisible par n'importe quel hébergeur de journaux. Ni adresse IP,
-// ni paramètres de requête, ni identifiants dans le chemin : seulement de quoi suivre le trafic
-// et retrouver une erreur par son identifiant (en-tête X-Request-Id, renvoyé au client).
-
 export type LogWriter = (line: string) => void;
 
-/**
- * Le chemin journalisé. La route déclarée (`/api/admin/:id`) quand elle est précise ; sinon le
- * chemin réel où seuls les segments en minuscules et tirets (des noms de routes) sont gardés :
- * jetons, identifiants, e-mails et noms de fichiers deviennent `:param`.
- */
 export function loggedPath(c: Context): string {
   const pattern = routePath(c);
   return pattern && !pattern.includes('*') ? pattern : maskedPath(c.req.path);

@@ -1,6 +1,5 @@
 import { CheckCard } from './CheckCard';
 
-/** Docker : l'image de production, construite et lancée en local. */
 export function DockerCheck() {
   return (
     <CheckCard

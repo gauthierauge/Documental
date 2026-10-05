@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
 import { adminConfig } from '@documental/contracts/admin.config';
 import { AdminApp, adminScreen } from '@/admin/AdminApp';

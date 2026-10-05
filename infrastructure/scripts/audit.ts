@@ -1,7 +1,3 @@
-// `make audit` (bun run audit) : l'audit des dépendances, qui échoue sur une vulnérabilité haute
-// ou critique. Les exceptions acceptées par écrit vivent dans kit.json (`auditExceptions` : id
-// GHSA, paquet, raison, revoirLe) ; passé `revoirLe`, une exception ne compte plus.
-// `bun audit --ignore` n'agit pas sur la sortie JSON : le filtrage se fait ici.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 
@@ -43,7 +39,6 @@ function isException(value: unknown): value is AuditException {
   );
 }
 
-/** Les exceptions bien formées, séparées entre actives et échues ; le reste est ignoré. */
 export function splitExceptions(
   raw: unknown,
   today: string,
@@ -55,7 +50,6 @@ export function splitExceptions(
   };
 }
 
-/** L'identifiant GHSA d'un avis, lu dans son adresse. */
 export function advisoryId(advisory: Advisory): string {
   return (
     String(advisory.url ?? '')
@@ -64,7 +58,6 @@ export function advisoryId(advisory: Advisory): string {
   );
 }
 
-/** La sortie de `bun audit --json`, sans les avis couverts par une exception active. */
 export function withoutExceptions(report: unknown, active: AuditException[]): AuditReport {
   const ids = new Set(active.map((e) => e.id));
   const kept: AuditReport = {};
@@ -77,7 +70,6 @@ export function withoutExceptions(report: unknown, active: AuditException[]): Au
   return kept;
 }
 
-/** Les paquets touchés, par gravité. */
 export function packagesBySeverity(report: AuditReport): Record<Severity, string[]> {
   const out: Record<Severity, string[]> = { critical: [], high: [], moderate: [], low: [] };
   for (const [name, advisories] of Object.entries(report)) {
@@ -89,7 +81,6 @@ export function packagesBySeverity(report: AuditReport): Record<Severity, string
   return out;
 }
 
-/** Le texte à afficher et le code de sortie : 1 dès qu'une vulnérabilité haute ou critique reste. */
 export function auditVerdict(
   report: unknown,
   exceptionsRaw: unknown,
@@ -128,7 +119,6 @@ export function auditVerdict(
   return { code: 0, lines };
 }
 
-/** Le JSON de `bun audit --json`, même précédé d'autres lignes ; null s'il n'y en a pas. */
 export function parseAuditOutput(output: string): unknown {
   const start = output.indexOf('{');
   if (start === -1) return null;

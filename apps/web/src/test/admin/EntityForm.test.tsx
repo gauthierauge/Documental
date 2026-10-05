@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { EntityForm } from '@/admin/EntityForm';
 import type { AdminEntity } from '@/admin/meta';

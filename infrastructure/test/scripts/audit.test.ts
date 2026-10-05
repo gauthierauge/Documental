@@ -5,7 +5,6 @@ import {
   withoutExceptions,
 } from '@/scripts/audit';
 
-// La forme de `bun audit --json` : un tableau d'avis par paquet.
 const REPORT = {
   'node-forge': [
     {

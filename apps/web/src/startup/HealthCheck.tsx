@@ -2,7 +2,6 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { api } from '@/api';
 import { CHECKING, CheckCard, type CheckStatus } from './CheckCard';
 
-/** Une route de santé de l'API, appelée pour de vrai à l'ouverture de la page. */
 export function HealthCheck({
   title,
   path,

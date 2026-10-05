@@ -10,13 +10,6 @@ import { Journal } from './Journal';
 import { type AdminMeta, entityByKey, useMeta } from './meta';
 import { Settings } from './Settings';
 
-// Le panel admin : un écran par contenu, plus les comptes, les réglages et le journal.
-// Tout ce qui s'affiche vient de /api/admin/meta, donc d'admin.config.ts et du rôle.
-
-/**
- * L'écran d'une adresse du panel, `/admin/<first>/<second>` (parties décodées, vides si absentes) ;
- * null : aucun écran à cette adresse pour ce rôle.
- */
 export function adminScreen(meta: AdminMeta, first: string, second: string): ReactNode | null {
   if (first === '')
     return meta.sections.accueil ? <Home /> : <EntityList entity={meta.entities[0]} />;
@@ -36,7 +29,6 @@ function Screen({ path }: { path: string }) {
   return adminScreen(useMeta(), first, second) ?? <EmptyState title="Page introuvable." />;
 }
 
-/** Le panel de l'app web : sa mise en page, et l'écran de l'adresse courante. */
 export function AdminApp() {
   const path = usePath();
   return (

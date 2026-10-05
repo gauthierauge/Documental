@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Accounts } from '@/admin/Accounts';
 import { type AdminMeta, MetaContext } from '@/admin/meta';

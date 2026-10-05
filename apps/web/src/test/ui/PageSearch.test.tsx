@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { findPages, PageSearch } from '@/ui/PageSearch';
 
@@ -22,7 +21,6 @@ describe('Recherche de page', () => {
     const input = screen.getByRole('searchbox', { name: 'Rechercher une page' });
     fireEvent.change(input, { target: { value: 'dev' } });
     expect(screen.getByRole('status')).toHaveTextContent('1 page trouvée');
-    // <search> porte le rôle « search » dans les navigateurs, pas encore dans jsdom.
     const results = input.closest('search') as HTMLElement;
     expect(within(results).getByRole('link', { name: 'Devis' })).toHaveAttribute('href', '/devis');
     fireEvent.submit(input);

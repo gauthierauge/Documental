@@ -1,7 +1,3 @@
-// Le message d'un refus 429 de l'API, lu au format du projet : `{ error }`, qui dit déjà quand
-// réessayer. Sans message lisible, l'en-tête `Retry-After` (en secondes) suffit à le dire.
-
-/** « 1 minute », « 15 minutes ». */
 function minutesText(seconds: number): string {
   const minutes = Math.max(1, Math.ceil(seconds / 60));
   return `${minutes} minute${minutes > 1 ? 's' : ''}`;
