@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import { and, count, eq } from 'drizzle-orm';
+import { and, count, eq, sql, sum } from 'drizzle-orm';
 import type { DocumentFile, FileMime, FileUsage } from '@documental/contracts/documents';
 import type { Db } from '@/db/client';
-import { documentFile, user } from '@/db/schema';
+import { document, documentFile, user } from '@/db/schema';
 
 export class FileNameTakenError extends Error {
   constructor() {
@@ -92,6 +92,14 @@ export class DocumentFileStore {
     return row ? { bytes: row.bytes, sha256: row.sha256 } : null;
   }
 
+  async bytesFor(documentId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ total: sum(documentFile.size) })
+      .from(documentFile)
+      .where(eq(documentFile.documentId, documentId));
+    return Number(row?.total ?? 0);
+  }
+
   async countFor(documentId: string): Promise<number> {
     const [row] = await this.db
       .select({ total: count() })
@@ -146,6 +154,21 @@ export class DocumentFileStore {
       .where(eq(documentFile.id, id))
       .returning({ id: documentFile.id });
     return deleted.length > 0;
+  }
+
+  async collectOrphans(before: Date): Promise<number> {
+    const deleted = await this.db
+      .delete(documentFile)
+      .where(
+        and(
+          eq(documentFile.usage, 'inline'),
+          sql`${documentFile.createdAt} < ${before}`,
+          sql`not exists (select 1 from ${document} d
+            where d.id = ${documentFile.documentId} and strpos(d.content, ${documentFile.id}) > 0)`,
+        ),
+      )
+      .returning({ id: documentFile.id });
+    return deleted.length;
   }
 }
 

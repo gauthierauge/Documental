@@ -29,6 +29,8 @@ export const FILE_MAX_BYTES = 25_000_000;
 
 export const DOCUMENT_FILES_MAX = 50;
 
+export const DOCUMENT_BYTES_MAX = 200_000_000;
+
 export const FILE_NAME_MAX = 180;
 
 export const FILE_USAGES = ['attachment', 'inline'] as const;

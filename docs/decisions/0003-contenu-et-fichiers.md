@@ -73,8 +73,13 @@ fichiers/`, qui porte `UPLOAD_MAX_MB` sans toucher à la limite de 2 Mo du corps
 - Les droits sur un fichier sont ceux de son document : écrire un fichier demande l'accès en
   écriture (`access.write`, donc le créateur, ses invités ou un admin), le supprimer demande
   l'accès en gestion. Les fichiers ne portent pas de droits à eux.
-- Un fichier inséré puis retiré du texte reste en base : il faudra un ramassage des orphelins, qui
-  ne peut se faire qu'en lisant le corps courant de chaque document.
+- Un fichier inséré puis retiré du texte est ramassé, mais pas tout de suite : une image dont
+  l'identifiant n'apparaît plus dans le corps courant et qui a passé une journée est supprimée.
+  Le délai de grâce protège le cas ordinaire — retirer une image puis se raviser, ou la déplacer
+  d'un paragraphe à l'autre en deux temps. Le balayage suit l'habitude des compteurs de débit :
+  paresseux, au plus un par heure et par instance, déclenché par la lecture d'un document, en une
+  seule instruction. Les pièces jointes ne sont jamais ramassées : elles ne sont citées nulle
+  part, leur liste est leur raison d'être.
 - Le sous-ensemble Markdown reconnu est une surface fermée : l'élargir demande d'écrire le cas et
   son test, ce qui est le but.
 

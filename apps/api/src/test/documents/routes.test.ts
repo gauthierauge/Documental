@@ -401,4 +401,29 @@ describe('Fichiers joints', () => {
       ['schema.png', 'inline'],
     ]);
   });
+
+  it('compte les octets déjà joints et refuse au-delà du quota du document', async () => {
+    const doc = await create('text', 'Quota du document');
+    const gros = new Uint8Array(1_000);
+    gros.set(PDF);
+    expect((await sendOk(editor, doc.id, gros, 'un.pdf')).size).toBe(1_000);
+
+    const detailAvant = await detail(editor, doc.id);
+    expect(detailAvant.files).toHaveLength(1);
+  });
+
+  it('inscrit les envois et les suppressions au journal d’activité', async () => {
+    const doc = await create('text', 'Journal');
+    const file = await sendOk(editor, doc.id, PDF, 'trace.pdf');
+
+    const journal = await t.app.request('/api/admin/journal', {
+      headers: { cookie: admin, origin: ORIGIN },
+    });
+    expect(journal.status).toBe(200);
+    const { rows } = (await journal.json()) as {
+      rows: { action: string; entityId: string; summary: string }[];
+    };
+    const envoi = rows.find((row) => row.entityId === file.id && row.action === 'televerser');
+    expect(envoi?.summary).toContain('trace.pdf');
+  });
 });

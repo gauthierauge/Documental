@@ -3,13 +3,16 @@ import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import type { Deps } from '@/app';
 import { requireUser, type SessionUser } from '@/auth/middleware';
+import { AuditLog } from '@/admin/audit';
 import { accessTo, canCreate } from '@/documents/access';
 import { fileNameFor, sniffFileMime } from '@/documents/file-type';
 import { DocumentFileStore, FileNameTakenError, freeName } from '@/documents/files-store';
 import { DocumentStore, NameTakenError } from '@/documents/store';
+import { orphanSweeper } from '@/documents/sweep';
 import {
   canManageDocument,
   type DocumentDetail,
+  DOCUMENT_BYTES_MAX,
   DOCUMENT_FILES_MAX,
   type DocumentItem,
   documentNameProblem,
@@ -88,6 +91,10 @@ function nameTaken(error: unknown): never {
 export function documentRoutes(deps: Deps) {
   const store = new DocumentStore(deps.db);
   const files = new DocumentFileStore(deps.db);
+  const audit = new AuditLog(deps.db);
+  const sweeper = orphanSweeper((before) => files.collectOrphans(before), {
+    onError: (error) => console.error(error),
+  });
   const app = new Hono();
 
   async function folderOr404(folderId: string | null) {
@@ -186,6 +193,11 @@ export function documentRoutes(deps: Deps) {
         message: `Ce document a déjà ${DOCUMENT_FILES_MAX} fichiers.`,
       });
     }
+    if ((await files.bytesFor(item.id)) + bytes.byteLength > DOCUMENT_BYTES_MAX) {
+      throw new HTTPException(409, {
+        message: `Les fichiers de ce document dépasseraient ${formatFileSize(DOCUMENT_BYTES_MAX)}.`,
+      });
+    }
 
     const taken = new Set((await files.list(item.id)).map((f) => f.name));
     const file = await files
@@ -198,6 +210,14 @@ export function documentRoutes(deps: Deps) {
         userId: currentUser(c).id,
       })
       .catch(nameTaken);
+    const author = currentUser(c);
+    await audit.record(author, {
+      action: 'televerser',
+      entity: 'document_file',
+      entityId: file.id,
+      summary: `${file.name} (${formatFileSize(file.size)}) sur « ${item.name} »`,
+      changes: { documentId: item.id, mime: file.mime, usage: file.usage },
+    });
     return c.json({ file }, 201);
   });
 
@@ -212,12 +232,20 @@ export function documentRoutes(deps: Deps) {
       });
     }
     await files.remove(file.id);
+    await audit.record(currentUser(c), {
+      action: 'supprimer',
+      entity: 'document_file',
+      entityId: file.id,
+      summary: `${file.name} retiré de « ${item.name} »`,
+      changes: { documentId: item.id, usage: file.usage },
+    });
     return c.body(null, 204);
   });
 
   app.get('/:id', async (c) => {
     const item = await store.get(c.req.param('id'));
     if (!item) throw new HTTPException(404, { message: 'Document introuvable' });
+    await sweeper.run();
     const detail: DocumentDetail = {
       item,
       path: await store.path(item.id),
