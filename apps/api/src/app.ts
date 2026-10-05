@@ -10,7 +10,8 @@ import { rateLimitStore } from './http/rate-limit-store';
 import { type LogWriter, requestLog } from './http/request-log';
 import { securityTxtHandler } from './http/security-txt';
 import { startupRoutes } from './startup/routes';
-import { type Db, ping } from './db/client';
+import { type Db, type Listen, ping } from './db/client';
+import type { UpgradeWebSocket } from 'hono/ws';
 import type { Mailer } from './mail/mailer';
 import { csrf } from 'hono/csrf';
 import { createAuth } from './auth/auth';
@@ -27,6 +28,8 @@ export interface Deps {
   log?: LogWriter;
   db: Db;
   mailer: Mailer;
+  listen: Listen;
+  upgradeWebSocket?: UpgradeWebSocket;
 }
 
 function defaultLog(env: Env): LogWriter | undefined {
@@ -53,7 +56,7 @@ export function createApp(deps: Deps) {
         scriptSrc: ["'self'"],
         styleSrc: ["'self'"],
         imgSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", new URL(env.APP_URL).origin.replace(/^http/, 'ws')],
         frameAncestors: ["'none'"],
       },
       crossOriginResourcePolicy: 'same-origin',

@@ -1,9 +1,10 @@
-import type { OperationSubmission } from '@documental/contracts/edition';
+import type { OperationSubmission, ServerMessage } from '@documental/contracts/edition';
 import {
   EditionController,
   type EditionEvents,
   type EditionStatus,
   type EditionStorage,
+  type SocketLike,
 } from '@/edition/controller';
 
 function respond(body: unknown, status = 200) {
@@ -46,7 +47,7 @@ function server(handler: Handler) {
   return submissions;
 }
 
-const options = { delayMs: 0, retryMs: [0] };
+const options = { delayMs: 0, retryMs: [0], connect: null };
 
 describe('Enregistrement d’un document', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -155,5 +156,166 @@ describe('Enregistrement d’un document', () => {
     await controller.start();
     controller.change('x', 1);
     await vi.waitFor(() => expect(statuses.at(-1)).toBe('erreur'));
+  });
+});
+
+class FakeSocket implements SocketLike {
+  onopen: (() => void) | null = null;
+  onmessage: ((event: { data: unknown }) => void) | null = null;
+  onclose: (() => void) | null = null;
+  readonly sent: Record<string, unknown>[] = [];
+  closed = false;
+
+  constructor(readonly path: string) {}
+
+  send(data: string): void {
+    this.sent.push(JSON.parse(data) as Record<string, unknown>);
+  }
+
+  close(): void {
+    this.closed = true;
+    this.onclose?.();
+  }
+
+  receive(message: ServerMessage): void {
+    this.onmessage?.({ data: JSON.stringify(message) });
+  }
+}
+
+function sockets() {
+  const opened: FakeSocket[] = [];
+  const connect = (path: string) => {
+    const socket = new FakeSocket(path);
+    opened.push(socket);
+    return socket;
+  };
+  return { opened, connect };
+}
+
+function contentOnly(content: string, revision: number) {
+  server(() => respond({ content, revision, canEdit: true }));
+}
+
+describe('Édition en direct', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('ouvre le direct à la version chargée et envoie les frappes une fois prêt', async () => {
+    contentOnly('Bonjour', 4);
+    const { opened, connect } = sockets();
+    const { events, statuses } = recorder();
+    const controller = new EditionController('d1', 'cle', events, {
+      delayMs: 0,
+      connect,
+      storage: memoryStorage(),
+    });
+    await controller.start();
+    expect(opened[0]?.path).toBe('/api/documents/d1/direct?depuis=4');
+    controller.change('Bonjour !', 9);
+    expect(opened[0]?.sent).toEqual([]);
+    opened[0]?.receive({ type: 'pret', revision: 4 });
+    await vi.waitFor(() =>
+      expect(opened[0]?.sent).toEqual([
+        { type: 'modification', id: expect.any(String), base: 4, operation: [7, ' !'] },
+      ]),
+    );
+    const id = String(opened[0]?.sent[0]?.id);
+    opened[0]?.receive({ type: 'operation', id, revision: 5, operation: [7, ' !'], author: null });
+    await vi.waitFor(() => expect(statuses.at(-1)).toBe('enregistre'));
+    expect(controller.pending).toBe(false);
+    controller.stop();
+  });
+
+  it('affiche aussitôt les modifications des autres', async () => {
+    contentOnly('lundi', 1);
+    const { opened, connect } = sockets();
+    const { events, remote } = recorder();
+    const controller = new EditionController('d1', 'cle', events, {
+      connect,
+      storage: memoryStorage(),
+    });
+    await controller.start();
+    opened[0]?.receive({ type: 'pret', revision: 1 });
+    opened[0]?.receive({
+      type: 'operation',
+      id: 'autre-0001',
+      revision: 2,
+      operation: ['Réunion ', 5],
+      author: { id: 'u2', name: 'Bob' },
+    });
+    expect(remote).toEqual(['Réunion lundi']);
+    controller.stop();
+  });
+
+  it('se reconnecte après une coupure et renvoie la même modification', async () => {
+    contentOnly('', 0);
+    const { opened, connect } = sockets();
+    const { events, statuses } = recorder();
+    const controller = new EditionController('d1', 'cle', events, {
+      delayMs: 0,
+      retryMs: [0],
+      connect,
+      storage: memoryStorage(),
+    });
+    await controller.start();
+    opened[0]?.receive({ type: 'pret', revision: 0 });
+    controller.change('a', 1);
+    await vi.waitFor(() => expect(opened[0]?.sent).toHaveLength(1));
+    opened[0]?.close();
+    expect(statuses.at(-1)).toBe('hors-ligne');
+    await vi.waitFor(() => expect(opened).toHaveLength(2));
+    expect(opened[1]?.path).toBe('/api/documents/d1/direct?depuis=0');
+    opened[1]?.receive({ type: 'pret', revision: 0 });
+    await vi.waitFor(() => expect(opened[1]?.sent).toHaveLength(1));
+    expect(opened[1]?.sent[0]).toEqual(opened[0]?.sent[0]);
+    controller.stop();
+  });
+
+  it('reconnaît sa modification dans le rattrapage après une coupure', async () => {
+    contentOnly('', 0);
+    const { opened, connect } = sockets();
+    const { events, statuses } = recorder();
+    const controller = new EditionController('d1', 'cle', events, {
+      delayMs: 0,
+      retryMs: [0],
+      connect,
+      storage: memoryStorage(),
+    });
+    await controller.start();
+    opened[0]?.receive({ type: 'pret', revision: 0 });
+    controller.change('a', 1);
+    await vi.waitFor(() => expect(opened[0]?.sent).toHaveLength(1));
+    const id = String(opened[0]?.sent[0]?.id);
+    opened[0]?.close();
+    await vi.waitFor(() => expect(opened).toHaveLength(2));
+    opened[1]?.receive({ type: 'operation', id, revision: 1, operation: ['a'], author: null });
+    opened[1]?.receive({ type: 'pret', revision: 1 });
+    await vi.waitFor(() => expect(statuses.at(-1)).toBe('enregistre'));
+    expect(opened[1]?.sent).toEqual([]);
+    controller.stop();
+  });
+
+  it('repart de zéro si une version manque, et s’arrête sur un refus', async () => {
+    contentOnly('x', 1);
+    const { opened, connect } = sockets();
+    const { events, statuses } = recorder();
+    const controller = new EditionController('d1', 'cle', events, {
+      retryMs: [0],
+      connect,
+      storage: memoryStorage(),
+    });
+    await controller.start();
+    opened[0]?.receive({ type: 'pret', revision: 1 });
+    opened[0]?.receive({
+      type: 'operation',
+      id: 'trou-0001',
+      revision: 3,
+      operation: [1],
+      author: null,
+    });
+    expect(opened[0]?.closed).toBe(true);
+    await vi.waitFor(() => expect(opened).toHaveLength(2));
+    opened[1]?.receive({ type: 'erreur', status: 403, message: 'Lecture seule' });
+    expect(statuses.at(-1)).toBe('erreur');
+    expect(opened[1]?.closed).toBe(true);
   });
 });
