@@ -3,15 +3,16 @@ import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import type { Deps } from '@/app';
 import { requireUser, type SessionUser } from '@/auth/middleware';
+import { accessTo, canCreate } from '@/documents/access';
 import { DocumentStore, NameTakenError } from '@/documents/store';
 import {
+  canManageDocument,
   type DocumentDetail,
+  type DocumentItem,
   documentNameProblem,
   type FolderListing,
   normalizeDocumentName,
 } from '@documental/contracts/documents';
-
-const EDITORS = ['admin', 'editeur'] as const;
 
 const id = z.string().min(1).max(64);
 
@@ -48,10 +49,6 @@ function currentUser(c: { get(key: 'user'): SessionUser | null }): SessionUser {
   const user = c.get('user');
   if (!user) throw new HTTPException(401, { message: 'Connexion requise' });
   return user;
-}
-
-function canEdit(user: SessionUser): boolean {
-  return (EDITORS as readonly string[]).includes(user.role);
 }
 
 async function parse<T extends z.ZodType>(schema: T, input: unknown): Promise<z.infer<T>> {
@@ -99,12 +96,14 @@ export function documentRoutes(deps: Deps) {
       folder,
       path: await store.path(folder?.id ?? null),
       items: await store.list(folder?.id ?? null),
-      canEdit: canEdit(currentUser(c)),
+      canCreate: canCreate(currentUser(c)),
     };
     return c.json(listing);
   });
 
   app.get('/dossiers', async (c) => c.json({ folders: await store.folders() }));
+
+  app.get('/partages', async (c) => c.json({ items: await store.sharedWith(currentUser(c).id) }));
 
   app.get('/:id', async (c) => {
     const item = await store.get(c.req.param('id'));
@@ -112,22 +111,32 @@ export function documentRoutes(deps: Deps) {
     const detail: DocumentDetail = {
       item,
       path: await store.path(item.id),
-      canEdit: canEdit(currentUser(c)),
+      access: await accessTo(store, currentUser(c), item),
     };
     return c.json(detail);
   });
 
-  app.post('/', requireUser(...EDITORS), async (c) => {
+  app.post('/', requireUser('admin', 'editeur'), async (c) => {
     const body = await parse(createBody, await readJson(c.req.raw));
     await folderOr404(body.parentId);
     const item = await store.create({ ...body, userId: currentUser(c).id }).catch(nameTaken);
     return c.json({ item }, 201);
   });
 
-  app.patch('/:id', requireUser(...EDITORS), async (c) => {
-    const body = await parse(updateBody, await readJson(c.req.raw));
-    const existing = await store.get(c.req.param('id'));
+  async function manageable(c: Parameters<typeof currentUser>[0], id: string) {
+    const existing = await store.get(id);
     if (!existing) throw new HTTPException(404, { message: 'Document introuvable' });
+    if (!canManageDocument(currentUser(c), existing)) {
+      throw new HTTPException(403, {
+        message: 'Seuls la personne qui l’a créé et les admins peuvent faire ça.',
+      });
+    }
+    return existing;
+  }
+
+  app.patch('/:id', async (c) => {
+    const body = await parse(updateBody, await readJson(c.req.raw));
+    const existing: DocumentItem = await manageable(c, c.req.param('id'));
     if (body.parentId !== undefined) {
       await folderOr404(body.parentId);
       if (await store.isInside(body.parentId, existing.id)) {
@@ -140,8 +149,9 @@ export function documentRoutes(deps: Deps) {
     return c.json({ item });
   });
 
-  app.delete('/:id', requireUser(...EDITORS), async (c) => {
-    if (!(await store.remove(c.req.param('id')))) {
+  app.delete('/:id', async (c) => {
+    const existing = await manageable(c, c.req.param('id'));
+    if (!(await store.remove(existing.id))) {
       throw new HTTPException(404, { message: 'Document introuvable' });
     }
     return c.body(null, 204);

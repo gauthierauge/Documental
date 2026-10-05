@@ -31,6 +31,9 @@ export function Editor({ documentId, userId }: { documentId: string; userId: str
           setStatus(next);
           setMessage(detail ?? null);
         },
+        access(editable) {
+          setCanEdit(editable);
+        },
         remote(text, operations) {
           const el = area.current;
           if (!el) return;

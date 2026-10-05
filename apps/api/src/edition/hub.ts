@@ -3,9 +3,9 @@ import type { ServerMessage } from '@documental/contracts/edition';
 import { isValidOperation, type TextOperation } from '@documental/contracts/text-operation';
 import type { SessionUser } from '@/auth/middleware';
 import type { Listen } from '@/db/client';
+import { ACCESS_CHANNEL, accessTo } from '@/documents/access';
+import type { DocumentStore } from '@/documents/store';
 import { EDITION_CHANNEL, EditionError, type EditionStore } from '@/edition/store';
-
-export const EDITORS: readonly string[] = ['admin', 'editeur'];
 
 export const submissionSchema = z
   .object({
@@ -48,6 +48,7 @@ export class EditionHub {
 
   constructor(
     private readonly store: EditionStore,
+    private readonly documents: DocumentStore,
     private readonly listen: Listen,
     options: HubOptions = {},
   ) {
@@ -56,7 +57,10 @@ export class EditionHub {
   }
 
   async join(documentId: string, connection: Connection, since: number): Promise<void> {
-    this.listening ??= this.listen(EDITION_CHANNEL, (id) => this.changed(id));
+    this.listening ??= Promise.all([
+      this.listen(EDITION_CHANNEL, (id) => this.changed(id)),
+      this.listen(ACCESS_CHANNEL, (id) => this.rightsChanged(id)),
+    ]);
     await this.listening;
     const room = this.rooms.get(documentId) ?? { members: new Map(), queue: Promise.resolve() };
     this.rooms.set(documentId, room);
@@ -94,20 +98,11 @@ export class EditionHub {
       connection.send({ type: 'erreur', status: 400, message: 'Message invalide' });
       return;
     }
-    if (!EDITORS.includes(connection.user.role)) {
-      connection.send({
-        type: 'erreur',
-        status: 403,
-        message: 'Lecture seule : modification refusée',
-        id: parsed.id,
-      });
-      return;
-    }
     try {
       await this.store.submit(
         documentId,
         { id: parsed.id, base: parsed.base, operation: parsed.operation },
-        connection.user.id,
+        connection.user,
       );
     } catch (error) {
       if (!(error instanceof EditionError)) throw error;
@@ -130,6 +125,21 @@ export class EditionHub {
   private changed(documentId: string): void {
     const room = this.rooms.get(documentId);
     if (room) void this.enqueue(documentId, room);
+  }
+
+  private rightsChanged(documentId: string): void {
+    const room = this.rooms.get(documentId);
+    if (!room) return;
+    room.queue = room.queue
+      .then(async () => {
+        const item = await this.documents.get(documentId);
+        if (!item) return;
+        for (const member of room.members.values()) {
+          const access = await accessTo(this.documents, member.connection.user, item);
+          member.connection.send({ type: 'droits', canEdit: access.write });
+        }
+      })
+      .catch(() => undefined);
   }
 
   private enqueue(documentId: string, room: Room): Promise<void> {

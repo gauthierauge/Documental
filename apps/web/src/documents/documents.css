@@ -58,3 +58,24 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.doc-partages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-partages li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-2) var(--espace-3);
+}
+
+.doc-discret {
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}

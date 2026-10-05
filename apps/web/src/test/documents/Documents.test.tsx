@@ -17,6 +17,7 @@ function item(kind: DocumentItem['kind'], id: string, name: string): DocumentIte
     createdAt: '2026-10-05T08:00:00.000Z',
     updatedAt: '2026-10-05T08:30:00.000Z',
     updatedBy: { id: 'u2', name: 'Bastien' },
+    createdBy: { id: 'u1', name: 'Éa' },
   };
 }
 
@@ -27,10 +28,11 @@ function respond(body: unknown, status = 200) {
   });
 }
 
-function serve(listing: FolderListing) {
+function serve(listing: FolderListing, shared: DocumentItem[] = []) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     if (init?.method === 'POST') return respond({ item: item('folder', 'n', 'Nouveau') }, 201);
     if (init?.method === 'DELETE') return respond(null, 204);
+    if (String(input).includes('/partages')) return respond({ items: shared });
     if (String(input).includes('/dossiers'))
       return respond({ folders: [{ id: 'f1', name: 'Projets', parentId: null }] });
     return respond(listing);
@@ -43,7 +45,7 @@ const root: FolderListing = {
   folder: null,
   path: [],
   items: [item('folder', 'f1', 'Projets'), item('text', 'd1', 'Charte')],
-  canEdit: true,
+  canCreate: true,
 };
 
 describe('Espace documentaire', () => {
@@ -112,11 +114,43 @@ describe('Espace documentaire', () => {
   });
 
   it('n’offre aucune modification à un lecteur', async () => {
-    serve({ ...root, canEdit: false });
+    vi.mocked(useCurrentUser).mockReturnValue({
+      user: { ...editor, id: 'u9', role: 'lecteur' },
+      pending: false,
+    });
+    serve({ ...root, canCreate: false });
     render(<Documents folderId={null} />);
     await screen.findByRole('link', { name: 'Projets' });
     expect(screen.queryByRole('button', { name: 'Nouveau document' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
+  });
+
+  it('ne propose de gérer que ses propres documents', async () => {
+    const theirs = {
+      ...item('text', 'd2', 'Note de Bastien'),
+      createdBy: { id: 'u2', name: 'Bastien' },
+    };
+    serve({ ...root, items: [...root.items, theirs] });
+    render(<Documents folderId={null} />);
+    expect(await screen.findByRole('button', { name: 'Supprimer Charte' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Supprimer Note de Bastien' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('montre les documents partagés avec moi à la racine', async () => {
+    const sharedDoc = {
+      ...item('text', 'p1', 'Plan partagé'),
+      createdBy: { id: 'u2', name: 'Bastien' },
+    };
+    serve(root, [sharedDoc]);
+    render(<Documents folderId={null} />);
+    const card = await screen.findByRole('region', { name: 'Partagés avec moi' });
+    expect(within(card).getByRole('link', { name: 'Plan partagé' })).toHaveAttribute(
+      'href',
+      '/documents/p1',
+    );
+    expect(card).toHaveTextContent('de Bastien');
   });
 
   it('dit quand un dossier est vide', async () => {
@@ -124,7 +158,7 @@ describe('Espace documentaire', () => {
       folder: item('folder', 'f1', 'Projets'),
       path: [{ id: 'f1', name: 'Projets' }],
       items: [],
-      canEdit: true,
+      canCreate: true,
     });
     render(<Documents folderId="f1" />);
     expect(await screen.findByText('Ce dossier est vide.')).toBeInTheDocument();

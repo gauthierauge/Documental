@@ -19,6 +19,7 @@ export type EditionStatus =
 export interface EditionEvents {
   status(status: EditionStatus, message?: string): void;
   remote(text: string, operations: TextOperation[]): void;
+  access?(canEdit: boolean): void;
 }
 
 export type EditionStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -214,6 +215,10 @@ export class EditionController {
       this.failures = 0;
       this.events.status(session.pending ? 'enregistrement' : 'enregistre');
       this.schedule(0);
+      return;
+    }
+    if (message.type === 'droits') {
+      this.events.access?.(message.canEdit);
       return;
     }
     if (message.type === 'erreur') {

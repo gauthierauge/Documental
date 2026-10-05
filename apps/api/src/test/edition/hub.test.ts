@@ -3,11 +3,14 @@ import type { SessionUser } from '@/auth/middleware';
 import type { Database } from '@/db/client';
 import * as schema from '@/db/schema';
 import { type Connection, EditionHub } from '@/edition/hub';
+import { DocumentStore } from '@/documents/store';
 import { EditionStore } from '@/edition/store';
+import { InvitationStore } from '@/invitations/store';
 import { testDatabase } from '@/test/support/database';
 
 let database: Database;
 let store: EditionStore;
+let documents: DocumentStore;
 let editor: SessionUser;
 let reader: SessionUser;
 let counter = 0;
@@ -26,7 +29,7 @@ async function newDocument(): Promise<string> {
   counter += 1;
   const [row] = await database.db
     .insert(schema.document)
-    .values({ kind: 'text', name: `Hub ${counter}` })
+    .values({ kind: 'text', name: `Hub ${counter}`, createdBy: editor.id })
     .returning({ id: schema.document.id });
   return row?.id ?? '';
 }
@@ -49,6 +52,7 @@ function modification(id: string, base: number, operation: (number | string)[]):
 beforeAll(async () => {
   database = await testDatabase();
   store = new EditionStore(database.db);
+  documents = new DocumentStore(database.db);
   editor = await newUser('editeur');
   reader = await newUser('lecteur');
 });
@@ -56,9 +60,9 @@ beforeAll(async () => {
 describe('Diffusion des modifications', () => {
   it('rattrape les modifications manquées puis annonce que la connexion est prête', async () => {
     const id = await newDocument();
-    await store.submit(id, { id: 'avant-1', base: 0, operation: ['ab'] }, editor.id);
-    await store.submit(id, { id: 'avant-2', base: 1, operation: [2, 'c'] }, editor.id);
-    const hub = new EditionHub(store, database.listen);
+    await store.submit(id, { id: 'avant-1', base: 0, operation: ['ab'] }, editor);
+    await store.submit(id, { id: 'avant-2', base: 1, operation: [2, 'c'] }, editor);
+    const hub = new EditionHub(store, documents, database.listen);
     const alice = connection(editor);
     await hub.join(id, alice.conn, 1);
     expect(alice.messages).toEqual([
@@ -69,8 +73,8 @@ describe('Diffusion des modifications', () => {
 
   it('envoie chaque modification à tous, l’auteur compris, sur les deux serveurs', async () => {
     const id = await newDocument();
-    const serverA = new EditionHub(store, database.listen);
-    const serverB = new EditionHub(store, database.listen);
+    const serverA = new EditionHub(store, documents, database.listen);
+    const serverB = new EditionHub(store, documents, database.listen);
     const alice = connection(editor);
     const bob = connection(editor);
     await serverA.join(id, alice.conn, 0);
@@ -92,8 +96,8 @@ describe('Diffusion des modifications', () => {
 
   it('transforme deux modifications simultanées et les diffuse dans le même ordre', async () => {
     const id = await newDocument();
-    await store.submit(id, { id: 'base', base: 0, operation: ['lundi'] }, editor.id);
-    const hub = new EditionHub(store, database.listen);
+    await store.submit(id, { id: 'base', base: 0, operation: ['lundi'] }, editor);
+    const hub = new EditionHub(store, documents, database.listen);
     const alice = connection(editor);
     const bob = connection(editor);
     await hub.join(id, alice.conn, 1);
@@ -119,7 +123,7 @@ describe('Diffusion des modifications', () => {
 
   it('refuse l’écriture à un lecteur et un message invalide', async () => {
     const id = await newDocument();
-    const hub = new EditionHub(store, database.listen);
+    const hub = new EditionHub(store, documents, database.listen);
     const lecteur = connection(reader);
     await hub.join(id, lecteur.conn, 0);
     await hub.receive(id, lecteur.conn, modification('lecteur-1', 0, ['non']));
@@ -133,7 +137,7 @@ describe('Diffusion des modifications', () => {
 
   it('renvoie l’erreur d’une modification incohérente à son auteur', async () => {
     const id = await newDocument();
-    const hub = new EditionHub(store, database.listen);
+    const hub = new EditionHub(store, documents, database.listen);
     const alice = connection(editor);
     await hub.join(id, alice.conn, 0);
     await hub.receive(id, alice.conn, modification('incoherente', 0, [4, 'x']));
@@ -142,16 +146,37 @@ describe('Diffusion des modifications', () => {
 
   it('ferme une connexion qui envoie trop de messages', async () => {
     const id = await newDocument();
-    const hub = new EditionHub(store, database.listen, { messagesPerSecond: 2, now: () => 0 });
+    const hub = new EditionHub(store, documents, database.listen, {
+      messagesPerSecond: 2,
+      now: () => 0,
+    });
     const alice = connection(editor);
     await hub.join(id, alice.conn, 0);
     for (let i = 0; i < 3; i++) await hub.receive(id, alice.conn, '{}');
     expect(alice.closed).toEqual([{ code: 1008, reason: 'Trop de messages' }]);
   });
 
+  it('prévient tout de suite une personne qu’elle peut écrire, ou plus', async () => {
+    const id = await newDocument();
+    const hub = new EditionHub(store, documents, database.listen);
+    const invited = connection(reader);
+    await hub.join(id, invited.conn, 0);
+    const invitations = new InvitationStore(database.db);
+    await invitations.add(id, reader.id, editor.id);
+    await vi.waitFor(() =>
+      expect(invited.messages).toContainEqual({ type: 'droits', canEdit: true }),
+    );
+    await hub.receive(id, invited.conn, modification('invite-0001', 0, ['oui']));
+    await vi.waitFor(async () => expect((await store.content(id))?.content).toBe('oui'));
+    await invitations.remove(id, reader.id);
+    await vi.waitFor(() =>
+      expect(invited.messages.at(-1)).toEqual({ type: 'droits', canEdit: false }),
+    );
+  });
+
   it('oublie une connexion fermée', async () => {
     const id = await newDocument();
-    const hub = new EditionHub(store, database.listen);
+    const hub = new EditionHub(store, documents, database.listen);
     const alice = connection(editor);
     await hub.join(id, alice.conn, 0);
     expect(hub.size(id)).toBe(1);

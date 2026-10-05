@@ -1,4 +1,5 @@
 import {
+  canManageDocument,
   compareDocuments,
   type DocumentItem,
   documentNameProblem,
@@ -14,6 +15,7 @@ function item(kind: DocumentItem['kind'], name: string): DocumentItem {
     createdAt: '2026-10-05T10:00:00.000Z',
     updatedAt: '2026-10-05T10:00:00.000Z',
     updatedBy: null,
+    createdBy: null,
   };
 }
 
@@ -45,5 +47,15 @@ describe('Ordre des documents', () => {
       item('folder', 'archives'),
     ].sort(compareDocuments);
     expect(sorted.map((i) => i.name)).toEqual(['archives', 'Zèbre', 'note 2', 'Note 10']);
+  });
+});
+
+describe('Droits sur un document', () => {
+  it('réserve la gestion au créateur et aux admins', () => {
+    const doc = { createdBy: { id: 'alice', name: 'Alice' } };
+    expect(canManageDocument({ id: 'alice', role: 'lecteur' }, doc)).toBe(true);
+    expect(canManageDocument({ id: 'bob', role: 'editeur' }, doc)).toBe(false);
+    expect(canManageDocument({ id: 'bob', role: 'admin' }, doc)).toBe(true);
+    expect(canManageDocument({ id: 'bob', role: 'admin' }, { createdBy: null })).toBe(true);
   });
 });
