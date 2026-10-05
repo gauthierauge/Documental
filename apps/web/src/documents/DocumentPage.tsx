@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { DOCUMENT_KIND_LABEL, type DocumentDetail } from '@documental/contracts/documents';
+import { useEffect, useMemo, useState } from 'react';
+import type { DocumentDetail, DocumentPerson } from '@documental/contracts/documents';
 import { api, ApiError } from '@/api';
-import { Editor } from '@/edition/Editor';
-import { Collaborators } from '@/invitations/Collaborators';
-import { Breadcrumb, formatDate, itemHref, useSignedIn } from '@/documents/shared';
+import { DocumentBar } from '@/documents/DocumentBar';
+import { itemHref, useSignedIn } from '@/documents/shared';
+import { Editor, type EditorState, type Follow } from '@/edition/Editor';
+import { SharePanel } from '@/invitations/SharePanel';
 import { navigate } from '@/router';
 import { Card } from '@/ui/Card';
 import { Notice } from '@/ui/Notice';
@@ -13,10 +14,16 @@ export function DocumentPage({ id }: { id: string }) {
   const user = useSignedIn(`/documents/${id}`);
   const [detail, setDetail] = useState<DocumentDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<EditorState | null>(null);
+  const [people, setPeople] = useState<DocumentPerson[]>([]);
+  const [follow, setFollow] = useState<Follow | null>(null);
+  const online = useMemo(() => new Set(people.map((p) => p.id)), [people]);
 
   useEffect(() => {
     if (!user) return;
     let active = true;
+    setState(null);
+    setPeople([]);
     api<DocumentDetail>(`/documents/${encodeURIComponent(id)}`)
       .then((result) => {
         if (!active) return;
@@ -44,24 +51,43 @@ export function DocumentPage({ id }: { id: string }) {
   if (!detail) return null;
 
   const { item } = detail;
+  const self = { id: user.id, name: user.name };
+  const canWrite = state?.ready ? state.canEdit : detail.access.write;
+
   return (
-    <Page
-      title={item.name}
-      lede={`${DOCUMENT_KIND_LABEL[item.kind]} · modifié le ${formatDate(item.updatedAt)}${
-        item.updatedBy ? ` par ${item.updatedBy.name}` : ''
-      }`}
-    >
-      <Breadcrumb path={detail.path} current />
+    <div className="ui-page doc-page">
+      <DocumentBar
+        item={item}
+        path={detail.path}
+        self={self}
+        people={people}
+        state={item.kind === 'text' ? state : null}
+        onFollow={(person) => setFollow({ userId: person.id, nonce: Date.now() })}
+        share={
+          item.kind === 'text' ? (
+            <SharePanel
+              documentId={item.id}
+              documentName={item.name}
+              userId={user.id}
+              canWrite={canWrite}
+              online={online}
+            />
+          ) : null
+        }
+      />
       {item.kind === 'text' ? (
-        <>
-          <Editor documentId={item.id} userId={user.id} />
-          <Collaborators documentId={item.id} userId={user.id} canWrite={detail.access.write} />
-        </>
+        <Editor
+          documentId={item.id}
+          userId={user.id}
+          onState={setState}
+          onPeople={setPeople}
+          follow={follow}
+        />
       ) : (
         <Card>
           <p>L’aperçu de ce fichier arrive bientôt.</p>
         </Card>
       )}
-    </Page>
+    </div>
   );
 }

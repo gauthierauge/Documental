@@ -18,6 +18,9 @@ describe('Personnes présentes', () => {
         ],
         'u1',
       ),
-    ).toEqual(['Bob', 'Zoé']);
+    ).toEqual([
+      { id: 'u3', name: 'Bob' },
+      { id: 'u2', name: 'Zoé' },
+    ]);
   });
 });

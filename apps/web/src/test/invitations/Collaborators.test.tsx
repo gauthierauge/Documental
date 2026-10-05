@@ -36,11 +36,12 @@ describe('Personnes d’un document', () => {
 
   it('montre le créateur et les invités', async () => {
     serve(list);
-    render(<Collaborators documentId="d1" userId="u1" canWrite />);
-    const card = await screen.findByRole('region', { name: 'Personnes' });
-    expect(card).toHaveTextContent('Alice');
-    expect(card).toHaveTextContent('A créé le document');
-    expect(card).toHaveTextContent('bob@exemple.fr');
+    render(<Collaborators documentId="d1" userId="u1" canWrite online={new Set(['u2'])} />);
+    const people = await screen.findByRole('list', { name: 'Personnes avec accès' });
+    expect(people).toHaveTextContent('Alice (vous)');
+    expect(people).toHaveTextContent('Propriétaire');
+    expect(people).toHaveTextContent('bob@exemple.fr');
+    expect(within(people).getAllByText('en ligne')).toHaveLength(2);
   });
 
   it('cherche un compte et l’invite', async () => {
@@ -76,10 +77,9 @@ describe('Personnes d’un document', () => {
   it('explique à un lecteur comment obtenir le droit d’écrire, sans lui proposer d’inviter', async () => {
     serve({ ...list, canManage: false });
     render(<Collaborators documentId="d1" userId="u9" canWrite={false} />);
-    const card = await screen.findByRole('region', { name: 'Personnes' });
-    expect(card).toHaveTextContent('demandez à Alice de vous inviter');
+    expect(await screen.findByText(/demandez à Alice de vous inviter/)).toBeInTheDocument();
     expect(screen.queryByLabelText(/Inviter une personne/)).not.toBeInTheDocument();
-    expect(within(card).queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('laisse un invité se retirer lui-même', async () => {
