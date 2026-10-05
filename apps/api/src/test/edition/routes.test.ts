@@ -144,6 +144,18 @@ describe('Écriture dans un document', () => {
     expect((await call(alice, '/inconnu/operations?depuis=0')).status).toBe(404);
   });
 
+  it('vérifie l’origine, la version et le document avant d’ouvrir le direct', async () => {
+    const id = await newDocument();
+    await submit(alice, id, 0, ['abc']);
+    const direct = (path: string, origin = ORIGIN) =>
+      t.app.request(`/api/documents${path}`, { headers: { cookie: alice, origin } });
+    expect((await direct(`/${id}/direct?depuis=1`, 'https://pirate.exemple')).status).toBe(403);
+    expect((await direct(`/${id}/direct?depuis=5`)).status).toBe(409);
+    expect((await direct('/inconnu/direct?depuis=0')).status).toBe(404);
+    expect((await direct(`/${id}/direct`)).status).toBe(400);
+    expect((await direct(`/${id}/direct?depuis=1`)).status).toBe(426);
+  });
+
   it('exige une connexion', async () => {
     const id = await newDocument();
     expect((await call('', `/${id}/contenu`)).status).toBe(401);

@@ -30,3 +30,10 @@ export interface SubmissionResult {
 export interface OperationsSince {
   operations: CommittedOperation[];
 }
+
+export type ClientMessage = { type: 'modification' } & OperationSubmission;
+
+export type ServerMessage =
+  | ({ type: 'operation' } & CommittedOperation)
+  | { type: 'pret'; revision: number }
+  | { type: 'erreur'; status: number; message: string; id?: string };

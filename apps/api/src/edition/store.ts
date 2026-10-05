@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, lt } from 'drizzle-orm';
+import { and, asc, eq, gt, lt, sql } from 'drizzle-orm';
 import {
   type CommittedOperation,
   DOCUMENT_CONTENT_MAX,
@@ -14,6 +14,8 @@ import {
 } from '@documental/contracts/text-operation';
 import type { Db } from '@/db/client';
 import { document, documentOperation, user } from '@/db/schema';
+
+export const EDITION_CHANNEL = 'documental_edition';
 
 export class EditionError extends Error {
   constructor(
@@ -145,6 +147,7 @@ export class EditionStore {
         .update(document)
         .set({ content, revision, updatedBy: userId, updatedAt: new Date() })
         .where(eq(document.id, documentId));
+      await tx.execute(sql`select pg_notify(${EDITION_CHANNEL}, ${documentId})`);
       return { revision, missed: concurrent.map(toCommitted) };
     });
   }

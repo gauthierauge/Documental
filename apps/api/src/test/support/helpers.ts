@@ -20,6 +20,7 @@ export async function testApp(options: TestAppOptions = {}) {
     env,
     db: database.db,
     mailer,
+    listen: database.listen,
     ...(options.log && { log: options.log }),
   } satisfies Deps;
   return { app: createApp(deps), deps };

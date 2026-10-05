@@ -1,4 +1,4 @@
-import { serveStatic } from 'hono/bun';
+import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun';
 import { createApp } from './app';
 import { readEnv } from './env';
 import { drainServer, handleShutdownSignals, onShutdown } from './shutdown';
@@ -13,7 +13,13 @@ const database = await openDatabase(databaseUrl(env));
 await database.migrate();
 onShutdown(() => database.close());
 const mailer = createMailer(env);
-const app = createApp({ env, db: database.db, mailer });
+const app = createApp({
+  env,
+  db: database.db,
+  mailer,
+  listen: database.listen,
+  upgradeWebSocket,
+});
 
 if (env.NODE_ENV === 'production') {
   app.use('/*', serveStatic({ root: '../web/dist' }));
@@ -25,7 +31,11 @@ if (env.NODE_ENV === 'production') {
   );
 }
 
-const server = Bun.serve({ port: env.PORT, fetch: app.fetch });
+const server = Bun.serve({
+  port: env.PORT,
+  fetch: app.fetch,
+  websocket: { ...websocket, maxPayloadLength: 2 * 1024 * 1024 },
+});
 // Inscrit en dernier, donc exécuté en premier à l'arrêt : plus de nouvelles requêtes, celles en
 // cours finissent, puis les ressources ouvertes plus haut sont fermées.
 onShutdown(() => drainServer(server, env.SHUTDOWN_TIMEOUT_MS));

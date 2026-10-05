@@ -15,7 +15,7 @@ export default defineConfig({
   },
   resolve: { tsconfigPaths: true },
   build: { outDir: 'dist', emptyOutDir: true },
-  server: { port: 5173, proxy: { '/api': 'http://localhost:8787' } },
+  server: { port: 5173, proxy: { '/api': { target: 'http://localhost:8787', ws: true } } },
   test: {
     globals: true,
     environment: 'node',

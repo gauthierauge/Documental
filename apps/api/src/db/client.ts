@@ -17,10 +17,16 @@ export function databaseUrl(env: { DATABASE_URL?: string | undefined }): string 
   return env.DATABASE_URL ?? 'pglite://./data/pglite';
 }
 
+export type Listen = (
+  channel: string,
+  onPayload: (payload: string) => void,
+) => Promise<() => Promise<void>>;
+
 export interface Database {
   db: Db;
   migrate(): Promise<void>;
   close(): Promise<void>;
+  listen: Listen;
 }
 
 const migrationsFolder = './drizzle';
@@ -47,6 +53,7 @@ export async function openDatabase(url: string, options: OpenOptions = {}): Prom
       db,
       migrate: () => migratePglite(db, { migrationsFolder }),
       close: () => client.close(),
+      listen: (channel, onPayload) => client.listen(channel, onPayload),
     };
   }
   const client = postgres(url, { max: 10 });
@@ -55,6 +62,10 @@ export async function openDatabase(url: string, options: OpenOptions = {}): Prom
     db,
     migrate: () => migratePostgres(db, { migrationsFolder }),
     close: () => client.end(),
+    listen: async (channel, onPayload) => {
+      const { unlisten } = await client.listen(channel, onPayload);
+      return unlisten;
+    },
   };
 }
 
