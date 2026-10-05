@@ -1,0 +1,51 @@
+.ed-editeur {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+}
+
+.ed-barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  min-height: var(--taille-cible);
+}
+
+.ed-etat {
+  margin: 0;
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.ed-etat-hors-ligne {
+  color: var(--couleur-attention);
+}
+
+.ed-etat-erreur {
+  color: var(--couleur-danger);
+}
+
+.ed-texte {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 60vh;
+  padding: var(--espace-5);
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--carte-fond);
+  color: var(--carte-texte);
+  font: var(--typo-corps);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ed-texte:focus-visible {
+  outline: 2px solid var(--couleur-focus);
+  outline-offset: 2px;
+}
+
+.ed-texte:disabled {
+  opacity: 0.6;
+}

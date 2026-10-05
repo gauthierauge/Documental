@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DOCUMENT_KIND_LABEL, type DocumentDetail } from '@documental/contracts/documents';
 import { api, ApiError } from '@/api';
+import { Editor } from '@/edition/Editor';
 import { Breadcrumb, formatDate, itemHref, useSignedIn } from '@/documents/shared';
 import { navigate } from '@/router';
 import { Card } from '@/ui/Card';
@@ -50,9 +51,13 @@ export function DocumentPage({ id }: { id: string }) {
       }`}
     >
       <Breadcrumb path={detail.path} current />
-      <Card>
-        <p data-document-content={item.id}>Le contenu du document s’affichera ici.</p>
-      </Card>
+      {item.kind === 'text' ? (
+        <Editor documentId={item.id} userId={user.id} />
+      ) : (
+        <Card>
+          <p>L’aperçu de ce fichier arrive bientôt.</p>
+        </Card>
+      )}
     </Page>
   );
 }

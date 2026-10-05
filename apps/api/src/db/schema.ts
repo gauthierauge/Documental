@@ -3,6 +3,7 @@
 import {
   type AnyPgColumn,
   bigint,
+  bigserial,
   boolean,
   index,
   integer,
@@ -168,10 +169,33 @@ export const document = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .$defaultFn(() => new Date()),
+    content: text('content').notNull().default(''),
+    revision: integer('revision').notNull().default(0),
   },
   (t) => [
     index('document_parent_idx').on(t.parentId),
     unique('document_name_unique').on(t.parentId, t.name).nullsNotDistinct(),
+  ],
+);
+
+export const documentOperation = pgTable(
+  'document_operation',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    documentId: text('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    revision: integer('revision').notNull(),
+    operationId: text('operation_id').notNull(),
+    operation: jsonb('operation').$type<(number | string)[]>().notNull(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    unique('document_operation_revision_unique').on(t.documentId, t.revision),
+    unique('document_operation_id_unique').on(t.documentId, t.operationId),
   ],
 );
 
