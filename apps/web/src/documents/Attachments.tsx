@@ -7,7 +7,8 @@ import {
   fileHref,
   formatFileSize,
 } from '@documental/contracts/documents';
-import { api, ApiError } from '@/api';
+import { api } from '@/api';
+import { uploadFailure, uploadFile } from '@/documents/upload';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
@@ -16,13 +17,9 @@ import '@/documents/documents.css';
 
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 
-function failure(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Envoi impossible pour le moment, réessayez.';
-}
-
 export function Attachments({
   documentId,
-  files,
+  files: all,
   canWrite,
   canManage,
   onChange,
@@ -33,6 +30,7 @@ export function Attachments({
   canManage: boolean;
   onChange: (files: DocumentFile[]) => void;
 }) {
+  const files = all.filter((file) => file.usage === 'attachment');
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,25 +40,15 @@ export function Attachments({
     if (!chosen || chosen.length === 0) return;
     setBusy(true);
     setError(null);
-    let current = files;
+    let current = all;
     try {
       for (const file of chosen) {
-        if (file.size > FILE_MAX_BYTES) {
-          throw new ApiError(413, `« ${file.name} » dépasse ${formatFileSize(FILE_MAX_BYTES)}.`);
-        }
-        const body = new FormData();
-        body.set('fichier', file);
-        const { file: added } = await api<{ file: DocumentFile }>(
-          `/documents/fichiers/${encodeURIComponent(documentId)}`,
-          { method: 'POST', body },
-        );
-        current = [...current, added].sort((a, b) =>
-          a.name.localeCompare(b.name, 'fr', { numeric: true }),
-        );
+        const added = await uploadFile(documentId, file, 'attachment');
+        current = [...current, added];
         onChange(current);
       }
     } catch (caught) {
-      setError(failure(caught));
+      setError(uploadFailure(caught));
     }
     setBusy(false);
     if (input.current) input.current.value = '';
@@ -71,9 +59,9 @@ export function Attachments({
     setError(null);
     try {
       await api(`/documents/fichiers/${encodeURIComponent(file.id)}`, { method: 'DELETE' });
-      onChange(files.filter((f) => f.id !== file.id));
+      onChange(all.filter((f) => f.id !== file.id));
     } catch (caught) {
-      setError(failure(caught));
+      setError(uploadFailure(caught));
     }
     setBusy(false);
   }

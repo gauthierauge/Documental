@@ -6,19 +6,33 @@ import { DocumentPage } from '@/documents/DocumentPage';
 vi.mock('@/auth/client', () => ({ useCurrentUser: vi.fn() }));
 vi.mock('@/invitations/SharePanel', () => ({ SharePanel: () => null }));
 
-const { editeurs, texteInitial } = vi.hoisted(() => ({
-  editeurs: [] as { onText?: (text: string) => void }[],
+interface FauxEditeur {
+  onText?: (text: string) => void;
+  onFiles?: (files: File[]) => void;
+}
+
+const { editeurs, insertions, texteInitial } = vi.hoisted(() => ({
+  editeurs: [] as FauxEditeur[],
+  insertions: [] as string[],
   texteInitial: { value: '# Titre\n\nUn texte.' },
 }));
 
 vi.mock('@/edition/Editor', async () => {
   const { useEffect } = await import('react');
   return {
-    Editor: ({ onText, hidden }: { onText?: (text: string) => void; hidden?: boolean }) => {
+    Editor: ({
+      onText,
+      onFiles,
+      hidden,
+      insert,
+    }: FauxEditeur & { hidden?: boolean; insert?: { text: string; nonce: number } | null }) => {
       useEffect(() => {
-        editeurs.push({ ...(onText ? { onText } : {}) });
+        editeurs.push({ ...(onText ? { onText } : {}), ...(onFiles ? { onFiles } : {}) });
         onText?.(texteInitial.value);
-      }, [onText]);
+      }, [onText, onFiles]);
+      useEffect(() => {
+        if (insert) insertions.push(insert.text);
+      }, [insert]);
       return <textarea aria-label="Contenu du document" hidden={hidden} readOnly />;
     },
   };
@@ -63,6 +77,7 @@ async function ouvrir() {
 describe('Page d’un document', () => {
   beforeEach(() => {
     editeurs.length = 0;
+    insertions.length = 0;
     texteInitial.value = '# Titre\n\nUn texte.';
     vi.mocked(useCurrentUser).mockReturnValue({ user, pending: false });
     serve();
@@ -119,5 +134,70 @@ describe('Page d’un document', () => {
     render(<DocumentPage id="d1" />);
     await waitFor(() => expect(screen.getByText(/aperçu de ce fichier/i)).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: 'Aperçu' })).toBeNull();
+  });
+
+  it('envoie une image collée et insère sa référence dans le texte', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) =>
+      init?.method === 'POST'
+        ? new Response(JSON.stringify({ file: { id: 'f9', name: 'schema.png' } }), {
+            status: 201,
+            headers: { 'content-type': 'application/json' },
+          })
+        : new Response(JSON.stringify(detail), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    await ouvrir();
+
+    const image = new File([new Uint8Array(4) as BlobPart], 'schema.png', { type: 'image/png' });
+    editeurs[0]?.onFiles?.([image]);
+
+    await waitFor(() => expect(insertions).toEqual(['\n![schema](/api/documents/fichiers/f9)\n']));
+    const envoi = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST') as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(envoi[0]).toBe('/api/documents/fichiers/d1');
+    expect((envoi[1].body as FormData).get('usage')).toBe('inline');
+  });
+
+  it('annonce l’échec d’un envoi sans rien insérer', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === 'POST'
+          ? new Response(JSON.stringify({ error: 'Seule une image s’insère dans le texte.' }), {
+              status: 415,
+              headers: { 'content-type': 'application/json' },
+            })
+          : new Response(JSON.stringify(detail), {
+              status: 200,
+              headers: { 'content-type': 'application/json' },
+            }),
+      ),
+    );
+    await ouvrir();
+
+    const image = new File([new Uint8Array(4) as BlobPart], 'schema.png', { type: 'image/png' });
+    editeurs[0]?.onFiles?.([image]);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Seule une image');
+    expect(insertions).toEqual([]);
+  });
+
+  it('n’offre « Insérer une image » qu’en rédaction, et à qui peut écrire', async () => {
+    await ouvrir();
+    expect(screen.getByRole('button', { name: 'Insérer une image' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Aperçu' }));
+    expect(screen.queryByRole('button', { name: 'Insérer une image' })).toBeNull();
+  });
+
+  it('cache « Insérer une image » à un lecteur', async () => {
+    serve({ ...detail, access: { write: false, manage: false } });
+    render(<DocumentPage id="d1" />);
+    await screen.findByRole('button', { name: 'Aperçu' });
+    expect(screen.queryByRole('button', { name: 'Insérer une image' })).toBeNull();
   });
 });

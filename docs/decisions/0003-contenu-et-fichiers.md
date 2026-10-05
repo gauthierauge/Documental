@@ -64,7 +64,12 @@ fichiers/`, qui porte `UPLOAD_MAX_MB` sans toucher à la limite de 2 Mo du corps
   ni de l'extension du nom. Le SVG est refusé : c'est un document exécutable déguisé en image.
 - **Insérer une image dans le corps passe par le contrôleur d'édition**, jamais par une écriture
   directe dans la zone de saisie : l'insertion est une opération comme une autre, transformée et
-  journalisée. C'est la contrainte principale que l'édition collaborative impose au lot suivant.
+  journalisée. L'éditeur reçoit la référence à insérer et appelle `change()` avec le texte
+  complet, exactement comme une frappe ; un test le vérifie, car une écriture directe passerait
+  inaperçue tant qu'une seule personne édite.
+- Un fichier porte son usage : joint sous le document, ou inséré dans le corps. Une image insérée
+  est servie `inline` et n'apparaît pas dans la liste des pièces jointes ; un PDF ne s'insère
+  pas, il se joint.
 - Les droits sur un fichier sont ceux de son document : écrire un fichier demande l'accès en
   écriture (`access.write`, donc le créateur, ses invités ou un admin), le supprimer demande
   l'accès en gestion. Les fichiers ne portent pas de droits à eux.

@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { DocumentDetail, DocumentFile, DocumentPerson } from '@documental/contracts/documents';
+import {
+  type DocumentDetail,
+  type DocumentFile,
+  type DocumentPerson,
+  IMAGE_MIMES,
+  markdownImageRef,
+} from '@documental/contracts/documents';
 import { api, ApiError } from '@/api';
 import { Attachments } from '@/documents/Attachments';
 import { DocumentBar } from '@/documents/DocumentBar';
 import { Markdown } from '@/documents/Markdown';
 import { itemHref, useSignedIn } from '@/documents/shared';
-import { Editor, type EditorState, type Follow } from '@/edition/Editor';
+import { uploadFailure, uploadFile } from '@/documents/upload';
+import { Editor, type EditorState, type Follow, type Insertion } from '@/edition/Editor';
 import { SharePanel } from '@/invitations/SharePanel';
 import { navigate } from '@/router';
 import { Button } from '@/ui/Button';
@@ -22,6 +29,8 @@ export function DocumentPage({ id }: { id: string }) {
   const [follow, setFollow] = useState<Follow | null>(null);
   const [apercu, setApercu] = useState(false);
   const [texte, setTexte] = useState('');
+  const [insert, setInsert] = useState<Insertion | null>(null);
+  const [envoi, setEnvoi] = useState<string | null>(null);
   const online = useMemo(() => new Set(people.map((p) => p.id)), [people]);
 
   useEffect(() => {
@@ -31,6 +40,8 @@ export function DocumentPage({ id }: { id: string }) {
     setPeople([]);
     setApercu(false);
     setTexte('');
+    setInsert(null);
+    setEnvoi(null);
     api<DocumentDetail>(`/documents/${encodeURIComponent(id)}`)
       .then((result) => {
         if (!active) return;
@@ -60,6 +71,31 @@ export function DocumentPage({ id }: { id: string }) {
   const { item } = detail;
   const self = { id: user.id, name: user.name };
   const canWrite = state?.ready ? state.canEdit : detail.access.write;
+  const ouvert = detail;
+
+  async function insererImages(images: File[]) {
+    setEnvoi(null);
+    let courant = ouvert.files;
+    try {
+      for (const image of images) {
+        const file = await uploadFile(ouvert.item.id, image, 'inline');
+        courant = [...courant, file];
+        setDetail({ ...ouvert, files: courant });
+        setInsert({ text: `\n${markdownImageRef(file)}\n`, nonce: Date.now() });
+      }
+    } catch (caught) {
+      setEnvoi(uploadFailure(caught));
+    }
+  }
+
+  function choisirImage() {
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = IMAGE_MIMES.join(',');
+    picker.multiple = true;
+    picker.addEventListener('change', () => void insererImages([...(picker.files ?? [])]));
+    picker.click();
+  }
 
   return (
     <div className="ui-page doc-page">
@@ -72,6 +108,11 @@ export function DocumentPage({ id }: { id: string }) {
         vues={
           item.kind === 'text' ? (
             <div className="doc-vues" role="group" aria-label="Affichage">
+              {canWrite && !apercu && (
+                <Button variant="discret" onClick={choisirImage}>
+                  Insérer une image
+                </Button>
+              )}
               <Button
                 variant={apercu ? 'discret' : 'secondaire'}
                 aria-pressed={!apercu}
@@ -110,9 +151,12 @@ export function DocumentPage({ id }: { id: string }) {
             onState={setState}
             onPeople={setPeople}
             onText={setTexte}
+            onFiles={(images) => void insererImages(images)}
             hidden={apercu}
             follow={follow}
+            insert={insert}
           />
+          {envoi && <Notice tone="danger">{envoi}</Notice>}
           {apercu &&
             (texte.trim() ? (
               <Markdown source={texte} />

@@ -3,6 +3,7 @@ import type { DocumentPerson } from '@documental/contracts/documents';
 import type { RemoteCursor } from '@documental/contracts/edition';
 import { transformIndex } from '@documental/contracts/text-operation';
 import { type CaretBox, caretBox, colorFor } from '@/edition/caret';
+import { imagesOf, pastedImages } from '@/documents/upload';
 import { EditionController, type EditionStatus } from '@/edition/controller';
 import '@/edition/edition.css';
 
@@ -20,6 +21,11 @@ export interface Follow {
   nonce: number;
 }
 
+export interface Insertion {
+  text: string;
+  nonce: number;
+}
+
 export function presentPeople(cursors: RemoteCursor[], selfId: string): DocumentPerson[] {
   const people = new Map<string, DocumentPerson>();
   for (const cursor of cursors) {
@@ -34,16 +40,20 @@ export function Editor({
   onState,
   onPeople,
   onText,
+  onFiles,
   hidden = false,
   follow,
+  insert,
 }: {
   documentId: string;
   userId: string;
   onState?: (state: EditorState) => void;
   onPeople?: (people: DocumentPerson[]) => void;
   onText?: (text: string) => void;
+  onFiles?: (files: File[]) => void;
   hidden?: boolean;
   follow?: Follow | null;
+  insert?: Insertion | null;
 }) {
   const area = useRef<HTMLTextAreaElement>(null);
   const controller = useRef<EditionController | null>(null);
@@ -56,6 +66,7 @@ export function Editor({
   const [layout, setLayout] = useState(0);
   const [followed, setFollowed] = useState<string | null>(null);
   const callbacks = useRef({ onState, onPeople, onText });
+  const [depot, setDepot] = useState(false);
   const latestCursors = useRef(cursors);
 
   useLayoutEffect(() => {
@@ -150,6 +161,22 @@ export function Editor({
 
   useEffect(() => {
     const el = area.current;
+    if (!insert || !el || el.readOnly) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const texte = `${el.value.slice(0, start)}${insert.text}${el.value.slice(end)}`;
+    const caret = start + insert.text.length;
+    el.value = texte;
+    el.setSelectionRange(caret, caret);
+    callbacks.current.onText?.(texte);
+    controller.current?.change(texte, caret);
+    controller.current?.moveCursor(caret, caret);
+    el.focus();
+    relayout();
+  }, [insert]);
+
+  useEffect(() => {
+    const el = area.current;
     if (!follow || !el) return;
     const cursor = latestCursors.current.find((c) => c.user.id === follow.userId);
     if (!cursor) return;
@@ -177,7 +204,7 @@ export function Editor({
   }, [cursors, layout, userId]);
 
   return (
-    <div className="ed-zone" hidden={hidden}>
+    <div className={depot ? 'ed-zone ed-zone-depot' : 'ed-zone'} hidden={hidden}>
       <textarea
         ref={area}
         className="ed-texte"
@@ -193,6 +220,29 @@ export function Editor({
         }}
         onSelect={reportSelection}
         onScroll={relayout}
+        onPaste={(event) => {
+          if (!onFiles || event.currentTarget.readOnly) return;
+          const images = pastedImages(event.clipboardData);
+          if (images.length === 0) return;
+          event.preventDefault();
+          onFiles(images);
+        }}
+        onDragOver={(event) => {
+          if (!onFiles || event.currentTarget.readOnly) return;
+          if (imagesOf(event.dataTransfer.files).length === 0 && !event.dataTransfer.items.length)
+            return;
+          event.preventDefault();
+          setDepot(true);
+        }}
+        onDragLeave={() => setDepot(false)}
+        onDrop={(event) => {
+          setDepot(false);
+          if (!onFiles || event.currentTarget.readOnly) return;
+          const images = imagesOf(event.dataTransfer.files);
+          if (images.length === 0) return;
+          event.preventDefault();
+          onFiles(images);
+        }}
       />
       <div className="ed-curseurs" aria-hidden="true">
         {placed.map((cursor) => (

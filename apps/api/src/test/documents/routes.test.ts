@@ -184,9 +184,11 @@ describe('Fichiers joints', () => {
     documentId: string,
     bytes: Uint8Array,
     name: string,
+    usage?: string,
   ): Promise<Response> {
     const form = new FormData();
     form.set('fichier', new File([bytes as BlobPart], name));
+    if (usage !== undefined) form.set('usage', usage);
     return Promise.resolve(
       t.app.request(`/api/documents/fichiers/${documentId}`, {
         method: 'POST',
@@ -205,13 +207,6 @@ describe('Fichiers joints', () => {
   function read(cookie: string, fileId: string, headers: Record<string, string> = {}) {
     return t.app.request(`/api/documents/fichiers/${fileId}`, {
       headers: { cookie, origin: ORIGIN, ...headers },
-    });
-  }
-
-  function remove(cookie: string, fileId: string) {
-    return t.app.request(`/api/documents/fichiers/${fileId}`, {
-      method: 'DELETE',
-      headers: { cookie, origin: ORIGIN },
     });
   }
 
@@ -366,5 +361,44 @@ describe('Fichiers joints', () => {
     });
     expect(supprime.status).toBe(204);
     expect((await read(editor, file.id)).status).toBe(404);
+  });
+
+  it('enregistre une image insérée dans le texte, et la sert à afficher', async () => {
+    const doc = await create('text', 'Avec une image');
+    const envoi = await send(editor, doc.id, PNG, 'schema.png', 'inline');
+    expect(envoi.status).toBe(201);
+    const { file } = (await envoi.json()) as { file: DocumentFile };
+    expect(file.usage).toBe('inline');
+
+    const lu = await read(editor, file.id);
+    expect(lu.headers.get('content-disposition')).toBe("inline; filename*=UTF-8''schema.png");
+  });
+
+  it('joint par défaut quand l’usage n’est pas précisé', async () => {
+    const doc = await create('text', 'Usage par défaut');
+    expect((await sendOk(editor, doc.id, PDF, 'plan.pdf')).usage).toBe('attachment');
+  });
+
+  it('refuse d’insérer un PDF dans le texte', async () => {
+    const doc = await create('text', 'PDF dans le texte');
+    const refus = await send(editor, doc.id, PDF, 'plan.pdf', 'inline');
+    expect(refus.status).toBe(415);
+    expect(((await refus.json()) as { error: string }).error).toMatch(/image/);
+  });
+
+  it('refuse un usage inconnu', async () => {
+    const doc = await create('text', 'Usage inconnu');
+    expect((await send(editor, doc.id, PNG, 'a.png', 'autre')).status).toBe(400);
+  });
+
+  it('distingue les images insérées des pièces jointes dans le détail', async () => {
+    const doc = await create('text', 'Les deux');
+    await sendOk(editor, doc.id, PDF, 'plan.pdf');
+    await send(editor, doc.id, PNG, 'schema.png', 'inline');
+    const { files } = await detail(editor, doc.id);
+    expect(files.map((f) => [f.name, f.usage])).toEqual([
+      ['plan.pdf', 'attachment'],
+      ['schema.png', 'inline'],
+    ]);
   });
 });

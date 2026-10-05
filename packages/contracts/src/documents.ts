@@ -31,7 +31,14 @@ export const DOCUMENT_FILES_MAX = 50;
 
 export const FILE_NAME_MAX = 180;
 
-export type FileUsage = 'attachment' | 'inline';
+export const FILE_USAGES = ['attachment', 'inline'] as const;
+export type FileUsage = (typeof FILE_USAGES)[number];
+
+export const IMAGE_MIMES = FILE_MIMES.filter((mime) => mime.startsWith('image/'));
+
+export function isImageMime(mime: string): boolean {
+  return mime.startsWith('image/') && isFileMime(mime);
+}
 
 export interface DocumentFile {
   id: string;
@@ -72,6 +79,11 @@ export function fileNameProblem(value: string): string | null {
 
 export function fileHref(fileId: string): string {
   return `/api/documents/fichiers/${encodeURIComponent(fileId)}`;
+}
+
+export function markdownImageRef(file: Pick<DocumentFile, 'id' | 'name'>): string {
+  const alt = file.name.replace(/[[\]]/g, '').replace(/\.[A-Za-z0-9]{1,8}$/, '');
+  return `![${alt}](${fileHref(file.id)})`;
 }
 
 export interface DocumentPerson {

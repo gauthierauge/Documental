@@ -15,6 +15,8 @@ import {
   documentNameProblem,
   FILE_MAX_BYTES,
   fileNameProblem,
+  type FileUsage,
+  isImageMime,
   type FolderListing,
   formatFileSize,
   normalizeDocumentName,
@@ -128,9 +130,10 @@ export function documentRoutes(deps: Deps) {
     c.header('content-length', String(file.size));
     c.header('etag', etag);
     c.header('cache-control', 'private, max-age=31536000, immutable');
+    const disposition = file.usage === 'inline' ? 'inline' : 'attachment';
     c.header(
       'content-disposition',
-      `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+      `${disposition}; filename*=UTF-8''${encodeURIComponent(file.name)}`,
     );
     return c.body(stored.bytes as unknown as ArrayBuffer);
   });
@@ -153,6 +156,11 @@ export function documentRoutes(deps: Deps) {
     if (!(sent instanceof File)) {
       throw new HTTPException(400, { message: 'Aucun fichier reçu' });
     }
+    const wantedUsage = form.get('usage');
+    if (wantedUsage !== null && wantedUsage !== 'attachment' && wantedUsage !== 'inline') {
+      throw new HTTPException(400, { message: 'Usage inconnu' });
+    }
+    const usage: FileUsage = wantedUsage === 'inline' ? 'inline' : 'attachment';
     if (sent.size === 0) throw new HTTPException(400, { message: 'Le fichier est vide.' });
     if (sent.size > FILE_MAX_BYTES) {
       throw new HTTPException(413, {
@@ -170,6 +178,9 @@ export function documentRoutes(deps: Deps) {
         message: 'Type de fichier non accepté : PDF, PNG, JPEG, WebP ou GIF.',
       });
     }
+    if (usage === 'inline' && !isImageMime(mime)) {
+      throw new HTTPException(415, { message: 'Seule une image s’insère dans le texte.' });
+    }
     if ((await files.countFor(item.id)) >= DOCUMENT_FILES_MAX) {
       throw new HTTPException(409, {
         message: `Ce document a déjà ${DOCUMENT_FILES_MAX} fichiers.`,
@@ -182,7 +193,7 @@ export function documentRoutes(deps: Deps) {
         documentId: item.id,
         name: freeName(taken, fileNameFor(normalizeFileName(sent.name), mime)),
         mime,
-        usage: 'attachment',
+        usage,
         bytes,
         userId: currentUser(c).id,
       })
