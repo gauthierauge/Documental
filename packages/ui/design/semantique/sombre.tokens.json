@@ -1,0 +1,170 @@
+{
+  "$description": "Couleurs sémantiques, mode sombre.",
+  "couleur": {
+    "fond": {
+      "$description": "Fond de page",
+      "$type": "color",
+      "$value": "{palette.neutre.1000}"
+    },
+    "surface": {
+      "$description": "Cartes, champs, en-tête",
+      "$type": "color",
+      "$value": "{palette.neutre.950}"
+    },
+    "surface-elevee": {
+      "$description": "Menus et fenêtres au-dessus du contenu",
+      "$type": "color",
+      "$value": "{palette.neutre.900}"
+    },
+    "surface-enfoncee": {
+      "$description": "En-têtes de tableau, survols, zones en retrait",
+      "$type": "color",
+      "$value": "{palette.neutre.1000}"
+    },
+    "texte": {
+      "$description": "Texte principal",
+      "$type": "color",
+      "$value": "{palette.neutre.50}"
+    },
+    "texte-attenue": {
+      "$description": "Texte secondaire : aides, légendes",
+      "$type": "color",
+      "$value": "{palette.neutre.400}"
+    },
+    "bordure": {
+      "$description": "Séparations discrètes",
+      "$type": "color",
+      "$value": "{palette.neutre.850}"
+    },
+    "bordure-forte": {
+      "$description": "Contour des champs (contraste 3:1)",
+      "$type": "color",
+      "$value": "{palette.neutre.500}"
+    },
+    "accent": {
+      "$description": "Action principale",
+      "$type": "color",
+      "$value": "{palette.accent.400}"
+    },
+    "accent-survol": {
+      "$description": "Action principale au survol",
+      "$type": "color",
+      "$value": "{palette.accent.300}"
+    },
+    "accent-texte": {
+      "$description": "Texte sur l’accent",
+      "$type": "color",
+      "$value": "{palette.neutre.1000}"
+    },
+    "accent-doux": {
+      "$description": "Fond accentué discret (élément actif)",
+      "$type": "color",
+      "$value": "{palette.accent.900}"
+    },
+    "accent-sur-doux": {
+      "$description": "Texte sur le fond accentué discret",
+      "$type": "color",
+      "$value": "{palette.accent.200}"
+    },
+    "lien": {
+      "$description": "Liens dans le texte",
+      "$type": "color",
+      "$value": "{palette.accent.300}"
+    },
+    "focus": {
+      "$description": "Anneau de focus clavier",
+      "$type": "color",
+      "$value": "{palette.accent.300}"
+    },
+    "succes": {
+      "$description": "Texte de succès",
+      "$type": "color",
+      "$value": "{palette.succes.300}"
+    },
+    "succes-fond": {
+      "$description": "Fond de message de succès",
+      "$type": "color",
+      "$value": "{palette.succes.900}"
+    },
+    "attention": {
+      "$description": "Texte d’avertissement",
+      "$type": "color",
+      "$value": "{palette.attention.300}"
+    },
+    "attention-fond": {
+      "$description": "Fond d’avertissement",
+      "$type": "color",
+      "$value": "{palette.attention.900}"
+    },
+    "danger": {
+      "$description": "Texte d’erreur et action destructrice",
+      "$type": "color",
+      "$value": "{palette.danger.300}"
+    },
+    "danger-fond": {
+      "$description": "Fond de message d’erreur",
+      "$type": "color",
+      "$value": "{palette.danger.900}"
+    }
+  },
+  "ombre": {
+    "carte": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.4,
+            "hex": "#000000"
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 1,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 3,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        }
+      ]
+    },
+    "flottante": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.5,
+            "hex": "#000000"
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 8,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 24,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        }
+      ]
+    }
+  }
+}

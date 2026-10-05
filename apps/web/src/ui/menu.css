@@ -1,0 +1,30 @@
+/* Le bouton du menu (et, en barre latérale, celui qui la replie). Uniquement des jetons. */
+
+.ui-menu-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+  min-height: var(--taille-cible);
+  padding: 0 var(--espace-3);
+  border: var(--trait-fin) solid var(--bouton-secondaire-bordure);
+  border-radius: var(--bouton-rayon);
+  background: var(--bouton-secondaire-fond);
+  color: var(--bouton-secondaire-texte);
+  font: var(--typo-bouton);
+  cursor: pointer;
+}
+
+.ui-menu-bouton:hover {
+  background: var(--bouton-secondaire-fond-survol);
+}
+
+/* Trois traits dessinés avec la couleur du texte du bouton. */
+.ui-menu-icone {
+  width: var(--espace-4);
+  height: var(--trait-epais);
+  margin-block: var(--espace-2);
+  background: currentColor;
+  box-shadow:
+    0 calc(-1 * var(--espace-2) + var(--trait-fin)) currentColor,
+    0 calc(var(--espace-2) - var(--trait-fin)) currentColor;
+}

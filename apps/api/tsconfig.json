@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../node_modules/.cache/tsc/apps-api",
+    "tsBuildInfoFile": "../../node_modules/.cache/tsc/apps-api.tsbuildinfo",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@documental/contracts/*": ["./../../packages/contracts/src/*"]
+    }
+  },
+  "include": ["src", "drizzle.config.ts"],
+  "references": [
+    {
+      "path": "../../packages/contracts"
+    }
+  ]
+}

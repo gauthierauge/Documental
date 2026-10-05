@@ -1,0 +1,56 @@
+{
+  "name": "documental",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+    "dev": "vp run -r --parallel dev",
+    "build": "bun run jetons && vp run @documental/web#build",
+    "start": "vp run @documental/api#start",
+    "typecheck": "tsc -b",
+    "lint": "vp check",
+    "format": "vp check --fix",
+    "test": "vp run --filter './apps/*' --filter './packages/*' test && vitest run --project infrastructure",
+    "tests:miroir": "bun infrastructure/scripts/check-tests.ts infrastructure/test-policy.json",
+    "check": "bun run tests:miroir && bun run typecheck && bun run lint && bun run test && bun run build",
+    "env:init": "bun infrastructure/scripts/env.ts init",
+    "env:check": "bun infrastructure/scripts/env.ts check",
+    "audit": "bun infrastructure/scripts/audit.ts",
+    "clean": "rm -rf apps/web/dist coverage node_modules/.cache/tsc",
+    "jetons": "vp run @documental/ui#jetons",
+    "db:generate": "vp run @documental/api#db:generate",
+    "db:migrate": "vp run @documental/api#db:migrate",
+    "mail:dns-check": "bun infrastructure/scripts/mail-dns-check.ts",
+    "admin:creer": "vp run @documental/api#admin:creer",
+    "compte:essai": "bun apps/api/src/auth/test-account.ts",
+    "docker:up": "docker compose --file infrastructure/docker/compose.yaml --env-file .env up --build --detach --wait",
+    "docker:down": "docker compose --file infrastructure/docker/compose.yaml --env-file .env down",
+    "docker:logs": "docker compose --file infrastructure/docker/compose.yaml --env-file .env logs --follow --tail 100",
+    "docker:smoke": "bun infrastructure/scripts/docker-smoke.ts"
+  },
+  "devDependencies": {
+    "@terrazzo/cli": "2.7.1",
+    "@terrazzo/parser": "2.7.1",
+    "@terrazzo/plugin-css": "2.7.1",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/bun": "1.4.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "drizzle-kit": "0.31.11",
+    "jsdom": "30.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.2",
+    "vite-plus": "1.0.0",
+    "vitest": "5.0.1"
+  },
+  "overrides": {
+    "esbuild": "0.28.2"
+  }
+}

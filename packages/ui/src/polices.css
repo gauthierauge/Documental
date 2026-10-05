@@ -1,0 +1,24 @@
+/* Polices du thème Tech : licence SIL OFL 1.1 (OFL.txt dans chaque dossier). */
+@font-face {
+  font-family: 'IBM Plex Sans Variable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./polices/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./polices/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./polices/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+}

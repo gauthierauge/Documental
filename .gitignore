@@ -1,0 +1,41 @@
+# Dépendances et builds
+node_modules/
+dist/
+build/
+out/
+dist-electron/
+release/
+.astro/
+.next/
+next-env.d.ts
+# Le cache de tsc --noEmit en mode incrémental (typecheck de Next)
+*.tsbuildinfo
+.expo/
+coverage/
+playwright-report/
+test-results/
+
+# Secrets : seul .env.example est versionné (invariant 1)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Données locales (invariant 8)
+data/
+*.sqlite
+*.sqlite-*
+*.db
+
+# Système et éditeurs
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
+
+# Jetons de design compilés par Terrazzo (bun run jetons) : la source est design/
+jetons.css
+jetons.js
+jetons.d.ts

@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "../node_modules/.cache/tsc/infrastructure",
+    "tsBuildInfoFile": "../node_modules/.cache/tsc/infrastructure.tsbuildinfo",
+    "paths": {
+      "@/*": ["./../infrastructure/*"],
+      "@documental/api/*": ["./../apps/api/src/*"],
+      "@documental/contracts/*": ["./../packages/contracts/src/*"]
+    }
+  },
+  "include": ["scripts", "test", "lint", "../vite.config.ts"],
+  "references": [
+    {
+      "path": "../apps/api"
+    },
+    {
+      "path": "../packages/contracts"
+    }
+  ]
+}

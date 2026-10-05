@@ -1,0 +1,226 @@
+/* Panel admin : la mise en page seulement. Couleurs, tailles et composants viennent des jetons
+   et de ui/ (boutons, champs, tableaux, cartes), comme le reste de l'app. */
+.adm {
+  display: grid;
+  grid-template-columns: calc(var(--espace-8) * 3.5) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.adm-side {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+  height: 100dvh;
+  padding: var(--espace-4) var(--espace-3);
+  border-right: var(--trait-fin) solid var(--navigation-bordure);
+  background: var(--navigation-fond);
+}
+
+.adm-brand {
+  display: flex;
+  align-items: center;
+  min-height: var(--taille-cible);
+  padding: 0 var(--navigation-espace-x);
+  color: var(--couleur-texte);
+  font: var(--typo-titre-3);
+  text-decoration: none;
+}
+
+.adm-rule {
+  height: var(--trait-fin);
+  margin: var(--espace-2) var(--espace-2);
+  background: var(--couleur-bordure);
+}
+
+.adm-grow {
+  flex: 1;
+}
+
+.adm-me {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+  min-height: var(--taille-cible);
+  padding: var(--espace-2) var(--navigation-espace-x);
+  overflow: hidden;
+  border-radius: var(--rayon-moyen);
+  color: var(--couleur-texte);
+  font: var(--typo-legende);
+  text-decoration: none;
+}
+
+.adm-me small {
+  display: block;
+  color: var(--couleur-texte-attenue);
+}
+
+.adm-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--espace-6);
+  height: var(--espace-6);
+  border-radius: var(--rayon-rond);
+  background: var(--couleur-accent-doux);
+  color: var(--couleur-accent-sur-doux);
+  font: var(--typo-legende);
+}
+
+.adm-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+  min-width: 0;
+  padding: var(--espace-5) var(--espace-6);
+}
+
+.adm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espace-3);
+}
+
+.adm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2) var(--espace-3);
+}
+
+.adm-search {
+  flex: 1 1 calc(var(--espace-8) * 4);
+  max-width: calc(var(--espace-8) * 5);
+}
+
+.adm-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--espace-8) * 3), 1fr));
+  gap: var(--espace-3);
+}
+
+.adm-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espace-1);
+  padding: var(--carte-espace);
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--carte-fond);
+  box-shadow: var(--carte-ombre);
+  color: var(--carte-texte);
+  text-decoration: none;
+}
+
+.adm-tile strong {
+  font: var(--typo-titre-2);
+}
+
+.adm-tile-label {
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.adm-row {
+  cursor: pointer;
+}
+
+.adm-row a {
+  color: inherit;
+  font-weight: var(--graisse-moyenne);
+  text-decoration: none;
+}
+
+.adm-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--espace-8) * 4)), 1fr));
+  gap: var(--espace-4) var(--espace-5);
+}
+
+.adm-form-foot {
+  grid-column: 1 / -1;
+}
+
+.adm-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--espace-3);
+}
+
+.adm-journal {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--typo-petit);
+}
+
+.adm-journal li {
+  padding: var(--espace-2) 0;
+  border-top: var(--trait-fin) solid var(--couleur-bordure);
+}
+
+.adm-journal li:first-child {
+  border-top: 0;
+}
+
+.adm-journal time,
+.adm-muted,
+.adm-back {
+  color: var(--couleur-texte-attenue);
+}
+
+.adm-journal time {
+  margin-right: var(--espace-2);
+}
+
+.adm-muted {
+  margin: 0;
+}
+
+.adm-back {
+  font: var(--typo-petit);
+  text-decoration: none;
+}
+
+.adm-row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espace-2);
+}
+
+@media (max-width: 48rem) {
+  .adm {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .adm-side {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    height: auto;
+    padding: var(--espace-2) var(--espace-3);
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: var(--trait-fin) solid var(--navigation-bordure);
+  }
+
+  .adm-side .ui-nav-lien {
+    flex: none;
+  }
+
+  .adm-rule,
+  .adm-grow,
+  .adm-me {
+    display: none;
+  }
+
+  .adm-main {
+    padding: var(--espace-4);
+  }
+}

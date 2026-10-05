@@ -1,0 +1,263 @@
+{
+  "$description": "Tech : neutres ardoise teintés de vert, accent vert. Outils métier, tableaux de bord.",
+  "palette": {
+    "neutre": {
+      "0": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.995, 0.002, 180],
+          "hex": "#fcfefd"
+        }
+      },
+      "50": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.975, 0.002, 180],
+          "hex": "#f5f7f7"
+        }
+      },
+      "100": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.952, 0.003, 180],
+          "hex": "#edf0ef"
+        }
+      },
+      "150": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.925, 0.004, 180],
+          "hex": "#e3e7e6"
+        }
+      },
+      "200": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.895, 0.006, 180],
+          "hex": "#d8dedc"
+        }
+      },
+      "300": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.83, 0.01, 180],
+          "hex": "#c1c9c7"
+        }
+      },
+      "400": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.72, 0.017, 180],
+          "hex": "#9aa8a5"
+        }
+      },
+      "500": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.62, 0.018, 180],
+          "hex": "#7b8a86"
+        }
+      },
+      "600": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.52, 0.018, 180],
+          "hex": "#5e6c69"
+        }
+      },
+      "700": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.44, 0.017, 180],
+          "hex": "#495653"
+        }
+      },
+      "800": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.36, 0.013, 180],
+          "hex": "#363f3d"
+        }
+      },
+      "850": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.3, 0.009, 180],
+          "hex": "#292f2e"
+        }
+      },
+      "900": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.25, 0.006, 180],
+          "hex": "#1f2322"
+        }
+      },
+      "950": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.205, 0.003, 180],
+          "hex": "#161817"
+        }
+      },
+      "1000": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.17, 0.002, 180],
+          "hex": "#0e100f"
+        }
+      }
+    },
+    "accent": {
+      "0": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.995, 0.006, 158],
+          "hex": "#fafffc"
+        }
+      },
+      "50": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.975, 0.018, 158],
+          "hex": "#edfbf2"
+        }
+      },
+      "100": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.952, 0.024, 158],
+          "hex": "#e3f4e9"
+        }
+      },
+      "150": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.925, 0.037, 158],
+          "hex": "#d3eedd"
+        }
+      },
+      "200": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.895, 0.053, 158],
+          "hex": "#c0e8cf"
+        }
+      },
+      "300": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.83, 0.085, 158],
+          "hex": "#98d9b2"
+        }
+      },
+      "400": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.72, 0.14, 158],
+          "hex": "#45bf82"
+        }
+      },
+      "500": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.62, 0.144, 158],
+          "hex": "#059f64"
+        }
+      },
+      "600": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.52, 0.12, 158],
+          "hex": "#067d4d"
+        }
+      },
+      "700": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.44, 0.101, 158],
+          "hex": "#05633c"
+        }
+      },
+      "800": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.36, 0.083, 158],
+          "hex": "#024a2c"
+        }
+      },
+      "850": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.3, 0.069, 158],
+          "hex": "#013820"
+        }
+      },
+      "900": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.25, 0.05, 158],
+          "hex": "#072918"
+        }
+      },
+      "950": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.205, 0.027, 158],
+          "hex": "#0c1b12"
+        }
+      },
+      "1000": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.17, 0.018, 158],
+          "hex": "#09120c"
+        }
+      }
+    }
+  },
+  "police": {
+    "texte": {
+      "$type": "fontFamily",
+      "$value": ["IBM Plex Sans Variable", "system-ui", "-apple-system", "Segoe UI", "sans-serif"]
+    },
+    "titres": {
+      "$type": "fontFamily",
+      "$value": ["IBM Plex Mono", "ui-monospace", "SF Mono", "Menlo", "Consolas", "monospace"]
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": ["IBM Plex Mono", "ui-monospace", "SF Mono", "Menlo", "Consolas", "monospace"]
+    }
+  }
+}

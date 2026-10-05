@@ -1,0 +1,28 @@
+{
+  "kit": 1,
+  "titre": "Documental",
+  "stack": "web",
+  "db": "postgres",
+  "auth": "motdepasse",
+  "modules": ["docker", "emails"],
+  "admin": true,
+  "contenus": ["Clients"],
+  "theme": "tech",
+  "mode": "systeme",
+  "layout": "sidebar-topbar",
+  "width": "pleine",
+  "architecture": {
+    "organisation": "separe",
+    "level": "direct",
+    "modules": []
+  },
+  "contexte": {
+    "audience": "moi",
+    "personalData": false,
+    "money": false,
+    "outage": "sans-gravite",
+    "maintainer": "moi",
+    "presumed": true
+  },
+  "createdAt": "2026-10-05"
+}

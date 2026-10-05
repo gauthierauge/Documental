@@ -1,0 +1,15 @@
+# gitleaks (CI, job « secrets ») : les règles par défaut, sur tout l'historique Git.
+# Seules exceptions : les clés d'exemple publiées par les fournisseurs dans leur documentation,
+# qui ne donnent accès à rien. Un vrai secret ne s'ajoute jamais ici : il se révoque.
+title = "Recherche de secrets"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Clés d'exemple documentées (AWS : …EXAMPLE, Stripe : …_example)"
+regexes = [
+  '''AKIA[0-9A-Z]{9}EXAMPLE''',
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+  '''(sk|pk|rk)_(test|live)_example''',
+]

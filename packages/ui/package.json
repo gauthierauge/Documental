@@ -1,0 +1,10 @@
+{
+  "name": "@documental/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tz build --watch",
+    "jetons": "tz build"
+  }
+}

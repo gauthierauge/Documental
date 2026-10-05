@@ -1,0 +1,157 @@
+/* Barre latérale + barre du haut : une colonne à gauche (nom, pages), repliable par son bouton ;
+   au-dessus du contenu, la recherche de page et le compte. Sous 48rem, la colonne devient une
+   barre en haut (nom, bouton Menu) qui ouvre le menu. Uniquement des jetons. */
+
+.ui-coquille {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.ui-cote {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+  width: calc(var(--espace-8) * 3.5);
+  height: 100dvh;
+  padding: var(--espace-3);
+  overflow-y: auto;
+  border-right: var(--trait-fin) solid var(--navigation-bordure);
+  background: var(--navigation-fond);
+}
+
+.ui-cote-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+}
+
+.ui-cote-tete .ui-marque {
+  min-width: 0;
+  padding-inline: var(--navigation-espace-x);
+  overflow-wrap: anywhere;
+}
+
+.ui-cote-tete .ui-menu-bouton {
+  flex: none;
+}
+
+.ui-replier {
+  padding-inline: var(--espace-3);
+}
+
+.ui-cote-tete .ui-menu-bouton:not(.ui-replier) {
+  display: none;
+}
+
+.ui-cote .ui-nav {
+  flex-direction: column;
+}
+
+.ui-colonne {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ui-barre-haut {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2) var(--espace-5);
+  padding: var(--espace-2) var(--espace-5);
+  border-bottom: var(--trait-fin) solid var(--navigation-bordure);
+  background: var(--navigation-fond);
+}
+
+.ui-recherche {
+  position: relative;
+  flex: 0 1 calc(var(--espace-8) * 5);
+}
+
+.ui-recherche-resultats {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + var(--espace-1));
+  padding: var(--espace-2);
+  border: var(--trait-fin) solid var(--couleur-bordure);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-elevee);
+  box-shadow: var(--ombre-flottante);
+}
+
+.ui-recherche-resultats .ui-nav {
+  flex-direction: column;
+}
+
+.ui-recherche-vide {
+  margin: 0;
+  padding: var(--espace-2);
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+/* Repliée : seul le bouton reste, le contenu prend la place. */
+.ui-coquille[data-replie] .ui-cote {
+  width: auto;
+}
+
+.ui-coquille[data-replie] .ui-cote-tete .ui-marque,
+.ui-coquille[data-replie] .ui-cote-menu {
+  display: none;
+}
+
+@media (max-width: 48rem) {
+  .ui-coquille {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ui-cote {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: var(--espace-2) var(--espace-4);
+    border-right: 0;
+    border-bottom: var(--trait-fin) solid var(--navigation-bordure);
+  }
+
+  .ui-cote-tete .ui-menu-bouton:not(.ui-replier) {
+    display: inline-flex;
+  }
+
+  /* Sur téléphone, la colonne ne se replie pas : le bouton Menu ouvre et ferme le menu. */
+  .ui-replier {
+    display: none;
+  }
+
+  .ui-coquille[data-replie] .ui-cote-tete .ui-marque {
+    display: inline-flex;
+  }
+
+  .ui-cote .ui-cote-menu {
+    display: none;
+    padding-block-end: var(--espace-2);
+  }
+
+  .ui-cote[data-ouvert] .ui-cote-menu {
+    display: block;
+  }
+
+  .ui-barre-haut {
+    position: static;
+    padding-inline: var(--espace-4);
+  }
+
+  .ui-recherche {
+    flex-basis: 100%;
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../node_modules/.cache/tsc/packages-contracts",
+    "tsBuildInfoFile": "../../node_modules/.cache/tsc/packages-contracts.tsbuildinfo",
+    "paths": {
+      "@documental/contracts/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

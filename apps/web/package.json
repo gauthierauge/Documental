@@ -1,0 +1,19 @@
+{
+  "name": "@documental/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config ../../vite.config.ts",
+    "build": "vite build --config ../../vite.config.ts",
+    "test": "vitest run --config ../../vite.config.ts --project web"
+  },
+  "dependencies": {
+    "@documental/contracts": "workspace:*",
+    "@documental/ui": "workspace:*",
+    "better-auth": "1.7.7",
+    "lean-qr": "2.7.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}

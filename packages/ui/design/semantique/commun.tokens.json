@@ -1,0 +1,109 @@
+{
+  "$description": "Sémantique commune aux deux modes : typographie et focus.",
+  "typo": {
+    "corps": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.texte}",
+        "fontSize": "{taille-texte.normal}",
+        "fontWeight": "{graisse.normale}",
+        "lineHeight": "{interligne.normal}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    },
+    "petit": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.texte}",
+        "fontSize": "{taille-texte.petit}",
+        "fontWeight": "{graisse.normale}",
+        "lineHeight": "{interligne.normal}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    },
+    "legende": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.texte}",
+        "fontSize": "{taille-texte.legende}",
+        "fontWeight": "{graisse.moyenne}",
+        "lineHeight": "{interligne.normal}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    },
+    "bouton": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.texte}",
+        "fontSize": "{taille-texte.normal}",
+        "fontWeight": "{graisse.moyenne}",
+        "lineHeight": "{interligne.serre}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    },
+    "titre-1": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.titres}",
+        "fontSize": "{taille-texte.titre-1}",
+        "fontWeight": "{graisse.forte}",
+        "lineHeight": "{interligne.serre}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    },
+    "titre-2": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.titres}",
+        "fontSize": "{taille-texte.titre-2}",
+        "fontWeight": "{graisse.forte}",
+        "lineHeight": "{interligne.serre}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    },
+    "titre-3": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{police.titres}",
+        "fontSize": "{taille-texte.titre-3}",
+        "fontWeight": "{graisse.forte}",
+        "lineHeight": "{interligne.serre}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "rem"
+        }
+      }
+    }
+  },
+  "focus": {
+    "epaisseur": {
+      "$type": "dimension",
+      "$value": "{trait.epais}"
+    },
+    "decalage": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    }
+  }
+}

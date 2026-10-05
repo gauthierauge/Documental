@@ -1,0 +1,72 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/resolver.json",
+  "name": "Documental · design system",
+  "version": "2025.10",
+  "description": "Thème Tech, modes clair et sombre. Source : templates/design du kit.",
+  "sets": {
+    "primitives": {
+      "sources": [
+        {
+          "$ref": "primitives.tokens.json"
+        }
+      ]
+    },
+    "theme": {
+      "description": "Ardoise teintée de vert, accent vert, IBM Plex Sans et titres en Plex Mono.",
+      "sources": [
+        {
+          "$ref": "themes/tech.tokens.json"
+        }
+      ]
+    },
+    "semantique": {
+      "sources": [
+        {
+          "$ref": "semantique/commun.tokens.json"
+        }
+      ]
+    },
+    "composants": {
+      "sources": [
+        {
+          "$ref": "composants.tokens.json"
+        }
+      ]
+    }
+  },
+  "modifiers": {
+    "mode": {
+      "description": "Clair par défaut ; sombre selon le système ou data-theme=\"sombre\".",
+      "contexts": {
+        "clair": [
+          {
+            "$ref": "semantique/clair.tokens.json"
+          }
+        ],
+        "sombre": [
+          {
+            "$ref": "semantique/sombre.tokens.json"
+          }
+        ]
+      },
+      "default": "clair"
+    }
+  },
+  "resolutionOrder": [
+    {
+      "$ref": "#/sets/primitives"
+    },
+    {
+      "$ref": "#/sets/theme"
+    },
+    {
+      "$ref": "#/sets/semantique"
+    },
+    {
+      "$ref": "#/modifiers/mode"
+    },
+    {
+      "$ref": "#/sets/composants"
+    }
+  ]
+}

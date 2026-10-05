@@ -1,0 +1,71 @@
+/* Ce que toutes les mises en page partagent : lien d'évitement, nom de l'app, listes de liens,
+   contenu et pied de page. Uniquement des jetons (design/, compilés dans
+   src/web/design/jetons.css) ; la disposition propre à la mise en page est dans app-shell.css. */
+
+.ui-evitement {
+  position: absolute;
+  inset-inline-start: var(--espace-3);
+  inset-block-start: var(--espace-3);
+  z-index: 10;
+  padding: var(--espace-2) var(--espace-3);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-elevee);
+  box-shadow: var(--ombre-flottante);
+  transform: translateY(-200%);
+}
+
+.ui-evitement:focus {
+  transform: none;
+}
+
+.ui-marque {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--taille-cible);
+  font: var(--typo-titre-3);
+  font-family: var(--police-titres);
+  color: var(--couleur-texte);
+  text-decoration: none;
+}
+
+.ui-nav {
+  display: flex;
+  gap: var(--espace-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-contenu {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: var(--espace-6) var(--espace-5);
+}
+
+.ui-contenu:focus {
+  outline: none;
+}
+
+.ui-pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  padding: var(--espace-3) var(--espace-5);
+  border-top: var(--trait-fin) solid var(--couleur-bordure);
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+@media (max-width: 48rem) {
+  .ui-contenu {
+    padding: var(--espace-5) var(--espace-4);
+  }
+
+  .ui-pied {
+    padding-inline: var(--espace-4);
+  }
+}

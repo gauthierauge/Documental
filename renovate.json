@@ -1,0 +1,57 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 9am on monday"],
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["patch", "minor"],
+      "matchCurrentVersion": "!/^0/",
+      "groupName": "mises à jour mineures",
+      "automerge": true
+    },
+    { "matchUpdateTypes": ["major"], "dependencyDashboardApproval": true },
+    {
+      "description": "Actions de la CI : épinglées par empreinte, version en commentaire",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "groupName": "actions de la CI"
+    },
+    {
+      "description": "Images Docker : épinglées par empreinte",
+      "matchDatasources": ["docker"],
+      "pinDigests": true,
+      "groupName": "images Docker"
+    },
+    {
+      "description": "Bun : .bun-version et l'image oven/bun du Dockerfile bougent ensemble",
+      "matchPackageNames": ["bun", "oven/bun"],
+      "groupName": "Bun"
+    },
+    {
+      "description": "gitleaks (CI) : l'empreinte du fichier ne se met pas à jour seule",
+      "matchPackageNames": ["gitleaks/gitleaks"],
+      "automerge": false,
+      "prBodyNotes": [
+        "Changer aussi GITLEAKS_SHA256 dans .github/workflows/ci.yml (ligne linux_x64 de gitleaks_<version>_checksums.txt) : sans cela, le job « secrets » échoue."
+      ]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "La version de gitleaks utilisée par la CI",
+      "managerFilePatterns": ["/^\\.github/workflows/ci\\.yml$/"],
+      "matchStrings": ["GITLEAKS_VERSION: (?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "gitleaks/gitleaks",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    }
+  ],
+  "vulnerabilityAlerts": { "enabled": true, "schedule": ["at any time"] }
+}

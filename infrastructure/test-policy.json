@@ -1,0 +1,43 @@
+{
+  "roots": [
+    {
+      "code": "apps/api/src",
+      "tests": "apps/api/src/test"
+    },
+    {
+      "code": "apps/web/src",
+      "tests": "apps/web/src/test"
+    },
+    {
+      "code": "packages/domain/src",
+      "tests": "packages/domain/src/test"
+    },
+    {
+      "code": "packages/contracts/src",
+      "tests": "packages/contracts/src/test"
+    },
+    {
+      "code": "packages/ui/src",
+      "tests": "packages/ui/src/test"
+    },
+    {
+      "code": "infrastructure",
+      "tests": "infrastructure/test"
+    }
+  ],
+  "required": [],
+  "exempt": [
+    "**/index.ts",
+    "**/main.ts",
+    "**/main.tsx",
+    "**/*.dto.ts",
+    "**/*.port.ts",
+    "**/*.d.ts",
+    "**/*.config.ts",
+    "**/*.table.ts"
+  ],
+  "probes": {
+    "required": "apps/api/src/modules/probe/usecases/create-probe/create-probe.usecase.ts",
+    "exempt": "apps/api/src/modules/probe/usecases/create-probe/create-probe.dto.ts"
+  }
+}

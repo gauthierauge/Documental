@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../node_modules/.cache/tsc/apps-web",
+    "tsBuildInfoFile": "../../node_modules/.cache/tsc/apps-web.tsbuildinfo",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@documental/contracts/*": ["./../../packages/contracts/src/*"],
+      "@documental/ui/*": ["./../../packages/ui/src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "../../packages/contracts"
+    },
+    {
+      "path": "../../packages/ui"
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "$description": "Jetons des composants : ils ne font que pointer vers la sémantique et les primitives.",
+  "bouton": {
+    "hauteur": {
+      "$type": "dimension",
+      "$value": "{taille-cible}"
+    },
+    "espace-x": {
+      "$type": "dimension",
+      "$value": "{espace.4}"
+    },
+    "rayon": {
+      "$type": "dimension",
+      "$value": "{rayon.moyen}"
+    },
+    "primaire": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.accent}"
+      },
+      "fond-survol": {
+        "$type": "color",
+        "$value": "{couleur.accent-survol}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.accent-texte}"
+      }
+    },
+    "secondaire": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.surface}"
+      },
+      "fond-survol": {
+        "$type": "color",
+        "$value": "{couleur.surface-enfoncee}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.texte}"
+      },
+      "bordure": {
+        "$type": "color",
+        "$value": "{couleur.bordure-forte}"
+      }
+    },
+    "discret": {
+      "fond-survol": {
+        "$type": "color",
+        "$value": "{couleur.surface-enfoncee}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.lien}"
+      }
+    },
+    "danger": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.surface}"
+      },
+      "fond-survol": {
+        "$type": "color",
+        "$value": "{couleur.danger-fond}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.danger}"
+      },
+      "bordure": {
+        "$type": "color",
+        "$value": "{couleur.danger}"
+      }
+    }
+  },
+  "champ": {
+    "hauteur": {
+      "$type": "dimension",
+      "$value": "{taille-cible}"
+    },
+    "espace-x": {
+      "$type": "dimension",
+      "$value": "{espace.3}"
+    },
+    "rayon": {
+      "$type": "dimension",
+      "$value": "{rayon.moyen}"
+    },
+    "fond": {
+      "$type": "color",
+      "$value": "{couleur.surface}"
+    },
+    "texte": {
+      "$type": "color",
+      "$value": "{couleur.texte}"
+    },
+    "aide": {
+      "$type": "color",
+      "$value": "{couleur.texte-attenue}"
+    },
+    "bordure": {
+      "$type": "color",
+      "$value": "{couleur.bordure-forte}"
+    },
+    "bordure-erreur": {
+      "$type": "color",
+      "$value": "{couleur.danger}"
+    },
+    "erreur": {
+      "$type": "color",
+      "$value": "{couleur.danger}"
+    }
+  },
+  "carte": {
+    "fond": {
+      "$type": "color",
+      "$value": "{couleur.surface}"
+    },
+    "bordure": {
+      "$type": "color",
+      "$value": "{couleur.bordure}"
+    },
+    "texte": {
+      "$type": "color",
+      "$value": "{couleur.texte}"
+    },
+    "rayon": {
+      "$type": "dimension",
+      "$value": "{rayon.grand}"
+    },
+    "espace": {
+      "$type": "dimension",
+      "$value": "{espace.5}"
+    },
+    "ombre": {
+      "$type": "shadow",
+      "$value": "{ombre.carte}"
+    }
+  },
+  "tableau": {
+    "fond": {
+      "$type": "color",
+      "$value": "{couleur.surface}"
+    },
+    "texte": {
+      "$type": "color",
+      "$value": "{couleur.texte}"
+    },
+    "entete-fond": {
+      "$type": "color",
+      "$value": "{couleur.surface-enfoncee}"
+    },
+    "entete-texte": {
+      "$type": "color",
+      "$value": "{couleur.texte-attenue}"
+    },
+    "ligne-bordure": {
+      "$type": "color",
+      "$value": "{couleur.bordure}"
+    },
+    "ligne-survol": {
+      "$type": "color",
+      "$value": "{couleur.surface-enfoncee}"
+    },
+    "espace-x": {
+      "$type": "dimension",
+      "$value": "{espace.4}"
+    },
+    "espace-y": {
+      "$type": "dimension",
+      "$value": "{espace.3}"
+    }
+  },
+  "badge": {
+    "rayon": {
+      "$type": "dimension",
+      "$value": "{rayon.rond}"
+    },
+    "espace-x": {
+      "$type": "dimension",
+      "$value": "{espace.2}"
+    },
+    "neutre": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.surface-enfoncee}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.texte}"
+      }
+    },
+    "accent": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.accent-doux}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.accent-sur-doux}"
+      }
+    },
+    "succes": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.succes-fond}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.succes}"
+      }
+    },
+    "attention": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.attention-fond}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.attention}"
+      }
+    },
+    "danger": {
+      "fond": {
+        "$type": "color",
+        "$value": "{couleur.danger-fond}"
+      },
+      "texte": {
+        "$type": "color",
+        "$value": "{couleur.danger}"
+      }
+    }
+  },
+  "navigation": {
+    "fond": {
+      "$type": "color",
+      "$value": "{couleur.surface}"
+    },
+    "bordure": {
+      "$type": "color",
+      "$value": "{couleur.bordure}"
+    },
+    "texte": {
+      "$type": "color",
+      "$value": "{couleur.texte-attenue}"
+    },
+    "texte-survol": {
+      "$type": "color",
+      "$value": "{couleur.texte}"
+    },
+    "texte-actif": {
+      "$type": "color",
+      "$value": "{couleur.accent-sur-doux}"
+    },
+    "fond-actif": {
+      "$type": "color",
+      "$value": "{couleur.accent-doux}"
+    },
+    "hauteur": {
+      "$type": "dimension",
+      "$value": "{taille-cible}"
+    },
+    "espace-x": {
+      "$type": "dimension",
+      "$value": "{espace.3}"
+    }
+  }
+}

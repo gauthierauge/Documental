@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+# Une nouvelle poussée sur la même branche annule la vérification devenue obsolète.
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+# Aucun droit par défaut : chaque job demande seulement ce dont il a besoin.
+permissions: {}
+
+# Actions épinglées par empreinte (la version en commentaire) : Renovate les met à jour.
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/bun
+      - run: bun run check
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      # Version et empreinte du fichier publié, à changer ensemble. L'empreinte se lit dans
+      # gitleaks_<version>_checksums.txt de la publication (ligne linux_x64).
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Tout l'historique : un secret retiré du code reste dans les anciens commits.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks
+        run: |
+          archive="$RUNNER_TEMP/gitleaks.tar.gz"
+          curl -sSfL -o "$archive" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  $archive" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+      - name: Scan the whole history for secrets (.gitleaks.toml)
+        run: '"$RUNNER_TEMP/gitleaks" git --redact --verbose --no-banner .'
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/bun
+      # Échoue sur une vulnérabilité haute ou critique, hors exceptions écrites dans kit.json.
+      - run: bun run audit
+
+  # La preuve à chaque poussée que l'image de production démarre : la même vérification que make smoke.
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality-gate
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/bun
+      - run: bun run docker:smoke

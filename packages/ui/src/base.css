@@ -1,0 +1,70 @@
+/* La base de toutes les pages : fond, texte, titres, liens et focus clavier, depuis les jetons.
+   jetons.css est compilé par Terrazzo depuis design/ (bun run jetons) : ne pas le modifier. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--couleur-fond);
+  color: var(--couleur-texte);
+  font: var(--typo-corps);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+h1 {
+  font: var(--typo-titre-1);
+}
+
+h2 {
+  font: var(--typo-titre-2);
+}
+
+h3 {
+  font: var(--typo-titre-3);
+}
+
+a {
+  color: var(--couleur-lien);
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--police-mono);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: var(--focus-epaisseur) solid var(--couleur-focus);
+  outline-offset: var(--focus-decalage);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,34 @@
+#!/bin/sh
+# Avant de pousser sur main ou develop : la porte qualité, la même que la CI (bun run check).
+# Les autres branches partent sans attendre. En cas d'urgence : git push --no-verify.
+
+protegee=""
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac
+  case "$remote_ref" in
+    refs/heads/main | refs/heads/develop) protegee="${remote_ref#refs/heads/}" ;;
+  esac
+done
+[ -n "$protegee" ] || exit 0
+
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  echo "Push vers $protegee refusé : des modifications ne sont pas commitées, la porte vérifierait autre chose que ce qui part."
+  echo "Commite-les ou mets-les de côté (git stash), puis pousse à nouveau."
+  exit 1
+fi
+
+# Un client Git graphique (VS Code, GitHub Desktop) n'a pas toujours ~/.bun/bin dans son PATH.
+bun=$(command -v bun || true)
+[ -n "$bun" ] || [ ! -x "$HOME/.bun/bin/bun" ] || bun="$HOME/.bun/bin/bun"
+if [ -z "$bun" ]; then
+  echo "Push vers $protegee refusé : bun est introuvable, la porte qualité ne peut pas tourner."
+  echo "Ajoute bun au PATH de ton client Git, ou pousse depuis un terminal."
+  exit 1
+fi
+
+echo "Porte qualité avant de pousser sur $protegee (bun run check)…"
+if ! "$bun" run check; then
+  echo ""
+  echo "Push vers $protegee refusé : la porte qualité échoue (ci-dessus). Corrige, commite, pousse à nouveau."
+  exit 1
+fi

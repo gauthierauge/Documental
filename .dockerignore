@@ -1,0 +1,27 @@
+# Ce qui n'entre jamais dans l'image : secrets, Git, dépendances et fichiers de la machine,
+# tests, rapports et captures. Le build régénère lui-même ce qui est compilé (dist, jetons).
+.env
+.env.*
+!.env.example
+.git
+.github
+node_modules
+dist
+.next
+data
+coverage
+tests
+e2e
+playwright.config.ts
+__tests__
+**/*.test.ts
+**/*.test.tsx
+playwright-report
+test-results
+captures
+**/jetons.css
+**/jetons.js
+**/jetons.d.ts
+docs
+*.log
+.DS_Store

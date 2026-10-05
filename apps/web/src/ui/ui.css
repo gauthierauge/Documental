@@ -1,0 +1,350 @@
+/* Les composants de base. Aucune valeur en dur : tout vient des jetons (design/, compilés
+   dans src/web/design/jetons.css). Changer de thème ou de mode ne touche pas ce fichier. */
+
+/* --- Liens de navigation (coquille de l'app et panel admin) ---------------------------------- */
+.ui-nav-lien {
+  display: flex;
+  align-items: center;
+  min-height: var(--navigation-hauteur);
+  padding: 0 var(--navigation-espace-x);
+  border-radius: var(--rayon-moyen);
+  color: var(--navigation-texte);
+  font: var(--typo-corps);
+  font-weight: var(--graisse-moyenne);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ui-nav-lien:hover {
+  color: var(--navigation-texte-survol);
+}
+
+.ui-nav-lien[aria-current='page'] {
+  background: var(--navigation-fond-actif);
+  color: var(--navigation-texte-actif);
+}
+
+/* --- Apparence ---------------------------------------------------------------------------- */
+.ui-apparence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+}
+
+/* --- Page ------------------------------------------------------------------------------- */
+.ui-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-5);
+}
+
+.ui-page-etroite {
+  max-width: var(--largeur-formulaire);
+  margin-inline: auto;
+}
+
+.ui-page-entete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+}
+
+.ui-chapo {
+  margin: 0;
+  color: var(--couleur-texte-attenue);
+}
+
+/* --- Boutons ------------------------------------------------------------------------------ */
+.ui-bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-2);
+  min-height: var(--bouton-hauteur);
+  padding: 0 var(--bouton-espace-x);
+  border: var(--trait-fin) solid transparent;
+  border-radius: var(--bouton-rayon);
+  font: var(--typo-bouton);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Les animations ne jouent que si le visiteur ne les a pas réduites. */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-bouton {
+    transition: background-color var(--duree-rapide) var(--courbe-standard);
+  }
+}
+
+.ui-bouton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ui-bouton-primaire {
+  background: var(--bouton-primaire-fond);
+  color: var(--bouton-primaire-texte);
+}
+
+.ui-bouton-primaire:hover:not(:disabled) {
+  background: var(--bouton-primaire-fond-survol);
+}
+
+.ui-bouton-secondaire {
+  border-color: var(--bouton-secondaire-bordure);
+  background: var(--bouton-secondaire-fond);
+  color: var(--bouton-secondaire-texte);
+}
+
+.ui-bouton-secondaire:hover:not(:disabled) {
+  background: var(--bouton-secondaire-fond-survol);
+}
+
+.ui-bouton-discret {
+  background: transparent;
+  color: var(--bouton-discret-texte);
+  text-decoration: underline;
+}
+
+.ui-bouton-discret:hover:not(:disabled) {
+  background: var(--bouton-discret-fond-survol);
+}
+
+.ui-bouton-danger {
+  border-color: var(--bouton-danger-bordure);
+  background: var(--bouton-danger-fond);
+  color: var(--bouton-danger-texte);
+}
+
+.ui-bouton-danger:hover:not(:disabled) {
+  background: var(--bouton-danger-fond-survol);
+}
+
+.ui-separateur {
+  margin: 0;
+  color: var(--couleur-texte-attenue);
+  text-align: center;
+}
+
+.ui-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-3);
+}
+
+/* --- Champs ------------------------------------------------------------------------------- */
+.ui-formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+}
+
+.ui-champ-bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+}
+
+.ui-libelle {
+  font: var(--typo-corps);
+  font-weight: var(--graisse-moyenne);
+}
+
+.ui-champ {
+  width: 100%;
+  min-height: var(--champ-hauteur);
+  padding: 0 var(--champ-espace-x);
+  border: var(--trait-fin) solid var(--champ-bordure);
+  border-radius: var(--champ-rayon);
+  background: var(--champ-fond);
+  color: var(--champ-texte);
+  font: var(--typo-corps);
+}
+
+.ui-champ-compact {
+  width: auto;
+}
+
+.ui-champ-long {
+  padding-block: var(--espace-2);
+}
+
+.ui-champ[aria-invalid='true'] {
+  border-color: var(--champ-bordure-erreur);
+}
+
+.ui-aide {
+  color: var(--champ-aide);
+  font: var(--typo-petit);
+}
+
+.ui-erreur {
+  color: var(--champ-erreur);
+  font: var(--typo-petit);
+}
+
+.ui-case {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+  min-height: var(--taille-cible);
+  cursor: pointer;
+}
+
+.ui-case input {
+  width: var(--espace-5);
+  height: var(--espace-5);
+  margin: 0;
+  accent-color: var(--couleur-accent);
+}
+
+/* --- Cartes ------------------------------------------------------------------------------- */
+.ui-carte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+  padding: var(--carte-espace);
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--carte-fond);
+  color: var(--carte-texte);
+  box-shadow: var(--carte-ombre);
+}
+
+.ui-carte-entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+}
+
+.ui-carte-titre {
+  margin: 0;
+  font: var(--typo-titre-3);
+}
+
+.ui-carte-actions {
+  display: flex;
+  gap: var(--espace-2);
+}
+
+.ui-carte p {
+  margin: 0;
+}
+
+/* --- Tableaux ----------------------------------------------------------------------------- */
+.ui-tableau-cadre {
+  overflow-x: auto;
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--tableau-fond);
+}
+
+.ui-tableau {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--tableau-texte);
+  font: var(--typo-petit);
+}
+
+.ui-tableau th {
+  padding: var(--tableau-espace-y) var(--tableau-espace-x);
+  background: var(--tableau-entete-fond);
+  color: var(--tableau-entete-texte);
+  font: var(--typo-legende);
+  text-align: start;
+}
+
+.ui-tableau td {
+  padding: var(--tableau-espace-y) var(--tableau-espace-x);
+  border-top: var(--trait-fin) solid var(--tableau-ligne-bordure);
+}
+
+.ui-tableau tbody tr:hover {
+  background: var(--tableau-ligne-survol);
+}
+
+.ui-tableau .ui-num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Pastilles et messages ---------------------------------------------------------------- */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--badge-espace-x);
+  border-radius: var(--badge-rayon);
+  font: var(--typo-legende);
+  white-space: nowrap;
+}
+
+.ui-badge-neutre {
+  background: var(--badge-neutre-fond);
+  color: var(--badge-neutre-texte);
+}
+
+.ui-badge-accent {
+  background: var(--badge-accent-fond);
+  color: var(--badge-accent-texte);
+}
+
+.ui-badge-succes {
+  background: var(--badge-succes-fond);
+  color: var(--badge-succes-texte);
+}
+
+.ui-badge-attention {
+  background: var(--badge-attention-fond);
+  color: var(--badge-attention-texte);
+}
+
+.ui-badge-danger {
+  background: var(--badge-danger-fond);
+  color: var(--badge-danger-texte);
+}
+
+.ui-message {
+  margin: 0;
+  padding: var(--espace-3) var(--espace-4);
+  border-radius: var(--rayon-moyen);
+  background: var(--badge-neutre-fond);
+  color: var(--badge-neutre-texte);
+}
+
+.ui-message-succes {
+  background: var(--badge-succes-fond);
+  color: var(--badge-succes-texte);
+}
+
+.ui-message-attention {
+  background: var(--badge-attention-fond);
+  color: var(--badge-attention-texte);
+}
+
+.ui-message-danger {
+  background: var(--badge-danger-fond);
+  color: var(--badge-danger-texte);
+}
+
+/* --- État vide ---------------------------------------------------------------------------- */
+.ui-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espace-2);
+  padding: var(--espace-6) var(--espace-4);
+  color: var(--couleur-texte-attenue);
+  text-align: center;
+}
+
+.ui-vide p {
+  margin: 0;
+}
+
+.ui-vide-titre {
+  font: var(--typo-titre-3);
+  color: var(--couleur-texte);
+}

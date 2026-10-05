@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../node_modules/.cache/tsc/packages-ui",
+    "tsBuildInfoFile": "../../node_modules/.cache/tsc/packages-ui.tsbuildinfo",
+    "paths": {
+      "@documental/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["design", "terrazzo.config.ts"]
+}

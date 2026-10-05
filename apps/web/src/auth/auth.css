@@ -1,0 +1,22 @@
+/* La double authentification : QR code et codes de secours. Couleurs et tailles des jetons. */
+.auth-qr {
+  width: calc(var(--espace-8) * 3);
+  height: calc(var(--espace-8) * 3);
+  border: var(--trait-fin) solid var(--couleur-bordure);
+  border-radius: var(--rayon-moyen);
+}
+
+.auth-secret,
+.auth-codes {
+  font-family: var(--police-mono);
+  overflow-wrap: anywhere;
+}
+
+.auth-codes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espace-1) var(--espace-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
