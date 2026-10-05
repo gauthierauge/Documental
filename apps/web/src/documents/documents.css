@@ -223,3 +223,80 @@
   border: 0;
   font: var(--typo-legende);
 }
+
+.doc-contenu {
+  max-width: var(--largeur-contenu);
+  color: var(--couleur-texte);
+  font: var(--typo-corps);
+}
+
+.doc-contenu > * + * {
+  margin-block-start: var(--espace-4);
+}
+
+.doc-contenu h2,
+.doc-contenu h3,
+.doc-contenu h4 {
+  margin-block: var(--espace-6) var(--espace-3);
+  line-height: var(--interligne-serre);
+}
+
+.doc-contenu > :first-child {
+  margin-block-start: 0;
+}
+
+.doc-contenu ul,
+.doc-contenu ol {
+  padding-inline-start: var(--espace-6);
+}
+
+.doc-contenu li + li {
+  margin-block-start: var(--espace-2);
+}
+
+.doc-contenu blockquote {
+  margin-inline: 0;
+  padding-inline-start: var(--espace-4);
+  border-inline-start: var(--trait-epais) solid var(--couleur-accent);
+  color: var(--couleur-texte-attenue);
+}
+
+.doc-contenu hr {
+  border: 0;
+  border-block-start: var(--trait-fin) solid var(--couleur-bordure);
+}
+
+.doc-code {
+  overflow-x: auto;
+  padding: var(--espace-3) var(--espace-4);
+  border: var(--trait-fin) solid var(--couleur-bordure);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.doc-code code,
+.doc-code-bref {
+  font-family: var(--police-mono);
+  font-size: var(--taille-texte-petit);
+}
+
+.doc-code-bref {
+  padding: 0 var(--espace-1);
+  border-radius: var(--rayon-petit);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.doc-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--rayon-moyen);
+}
+
+.doc-vues {
+  display: flex;
+  gap: var(--espace-1);
+}
+
+.ed-zone[hidden] {
+  display: none;
+}

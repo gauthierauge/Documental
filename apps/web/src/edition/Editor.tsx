@@ -33,12 +33,16 @@ export function Editor({
   userId,
   onState,
   onPeople,
+  onText,
+  hidden = false,
   follow,
 }: {
   documentId: string;
   userId: string;
   onState?: (state: EditorState) => void;
   onPeople?: (people: DocumentPerson[]) => void;
+  onText?: (text: string) => void;
+  hidden?: boolean;
   follow?: Follow | null;
 }) {
   const area = useRef<HTMLTextAreaElement>(null);
@@ -51,11 +55,11 @@ export function Editor({
   const [placed, setPlaced] = useState<PlacedCursor[]>([]);
   const [layout, setLayout] = useState(0);
   const [followed, setFollowed] = useState<string | null>(null);
-  const callbacks = useRef({ onState, onPeople });
+  const callbacks = useRef({ onState, onPeople, onText });
   const latestCursors = useRef(cursors);
 
   useLayoutEffect(() => {
-    callbacks.current = { onState, onPeople };
+    callbacks.current = { onState, onPeople, onText };
     latestCursors.current = cursors;
   });
 
@@ -102,6 +106,7 @@ export function Editor({
           }
           el.value = text;
           el.setSelectionRange(start, end);
+          callbacks.current.onText?.(text);
           relayout();
         },
       },
@@ -111,6 +116,7 @@ export function Editor({
       .start()
       .then(({ text, canEdit: editable }) => {
         if (area.current) area.current.value = text;
+        callbacks.current.onText?.(text);
         setCanEdit(editable);
         setReady(true);
         relayout();
@@ -171,7 +177,7 @@ export function Editor({
   }, [cursors, layout, userId]);
 
   return (
-    <div className="ed-zone">
+    <div className="ed-zone" hidden={hidden}>
       <textarea
         ref={area}
         className="ed-texte"
@@ -180,6 +186,7 @@ export function Editor({
         disabled={!ready}
         readOnly={!canEdit || status === 'erreur'}
         onInput={(event) => {
+          callbacks.current.onText?.(event.currentTarget.value);
           controller.current?.change(event.currentTarget.value, event.currentTarget.selectionEnd);
           reportSelection();
           relayout();

@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import type { DocumentDetail, DocumentPerson } from '@documental/contracts/documents';
 import { api, ApiError } from '@/api';
 import { DocumentBar } from '@/documents/DocumentBar';
+import { Markdown } from '@/documents/Markdown';
 import { itemHref, useSignedIn } from '@/documents/shared';
 import { Editor, type EditorState, type Follow } from '@/edition/Editor';
 import { SharePanel } from '@/invitations/SharePanel';
 import { navigate } from '@/router';
+import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Notice } from '@/ui/Notice';
 import { Page } from '@/ui/Page';
@@ -17,6 +19,8 @@ export function DocumentPage({ id }: { id: string }) {
   const [state, setState] = useState<EditorState | null>(null);
   const [people, setPeople] = useState<DocumentPerson[]>([]);
   const [follow, setFollow] = useState<Follow | null>(null);
+  const [apercu, setApercu] = useState(false);
+  const [texte, setTexte] = useState('');
   const online = useMemo(() => new Set(people.map((p) => p.id)), [people]);
 
   useEffect(() => {
@@ -24,6 +28,8 @@ export function DocumentPage({ id }: { id: string }) {
     let active = true;
     setState(null);
     setPeople([]);
+    setApercu(false);
+    setTexte('');
     api<DocumentDetail>(`/documents/${encodeURIComponent(id)}`)
       .then((result) => {
         if (!active) return;
@@ -62,6 +68,26 @@ export function DocumentPage({ id }: { id: string }) {
         self={self}
         people={people}
         state={item.kind === 'text' ? state : null}
+        vues={
+          item.kind === 'text' ? (
+            <div className="doc-vues" role="group" aria-label="Affichage">
+              <Button
+                variant={apercu ? 'discret' : 'secondaire'}
+                aria-pressed={!apercu}
+                onClick={() => setApercu(false)}
+              >
+                Rédiger
+              </Button>
+              <Button
+                variant={apercu ? 'secondaire' : 'discret'}
+                aria-pressed={apercu}
+                onClick={() => setApercu(true)}
+              >
+                Aperçu
+              </Button>
+            </div>
+          ) : null
+        }
         onFollow={(person) => setFollow({ userId: person.id, nonce: Date.now() })}
         share={
           item.kind === 'text' ? (
@@ -76,13 +102,23 @@ export function DocumentPage({ id }: { id: string }) {
         }
       />
       {item.kind === 'text' ? (
-        <Editor
-          documentId={item.id}
-          userId={user.id}
-          onState={setState}
-          onPeople={setPeople}
-          follow={follow}
-        />
+        <>
+          <Editor
+            documentId={item.id}
+            userId={user.id}
+            onState={setState}
+            onPeople={setPeople}
+            onText={setTexte}
+            hidden={apercu}
+            follow={follow}
+          />
+          {apercu &&
+            (texte.trim() ? (
+              <Markdown source={texte} />
+            ) : (
+              <p className="doc-discret">Ce document est vide.</p>
+            ))}
+        </>
       ) : (
         <Card>
           <p>L’aperçu de ce fichier arrive bientôt.</p>
