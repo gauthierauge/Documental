@@ -30,7 +30,7 @@
 .ed-texte {
   box-sizing: border-box;
   width: 100%;
-  min-height: 60vh;
+  min-height: max(20rem, calc(100dvh - 16rem));
   padding: var(--espace-5);
   border: var(--trait-fin) solid var(--carte-bordure);
   border-radius: var(--carte-rayon);
@@ -97,4 +97,21 @@
   background: var(--couleur-accent-doux);
   color: var(--couleur-accent-sur-doux);
   font: var(--typo-petit);
+}
+
+.ed-curseur-suivi .ed-curseur-nom {
+  outline: 2px solid var(--couleur-focus);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ed-curseur-suivi {
+    animation: ed-clignote 0.5s ease-in-out 3;
+  }
+}
+
+@keyframes ed-clignote {
+  50% {
+    opacity: 0.2;
+  }
 }

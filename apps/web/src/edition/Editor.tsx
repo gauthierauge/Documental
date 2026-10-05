@@ -1,31 +1,46 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { DocumentPerson } from '@documental/contracts/documents';
 import type { RemoteCursor } from '@documental/contracts/edition';
 import { transformIndex } from '@documental/contracts/text-operation';
 import { type CaretBox, caretBox, colorFor } from '@/edition/caret';
 import { EditionController, type EditionStatus } from '@/edition/controller';
-import { Button } from '@/ui/Button';
 import '@/edition/edition.css';
-
-const STATUS_LABEL: Record<EditionStatus, string> = {
-  chargement: 'Chargement…',
-  enregistre: 'Enregistré',
-  enregistrement: 'Enregistrement…',
-  'hors-ligne':
-    'Hors ligne : vos modifications sont gardées et partiront au retour de la connexion.',
-  erreur: 'Enregistrement impossible.',
-};
 
 type PlacedCursor = RemoteCursor & { box: CaretBox; color: string };
 
-export function presentPeople(cursors: RemoteCursor[], selfId: string): string[] {
-  const names = new Map<string, string>();
-  for (const cursor of cursors) {
-    if (cursor.user.id !== selfId) names.set(cursor.user.id, cursor.user.name);
-  }
-  return [...names.values()].sort((a, b) => a.localeCompare(b, 'fr'));
+export interface EditorState {
+  status: EditionStatus;
+  message: string | null;
+  canEdit: boolean;
+  ready: boolean;
 }
 
-export function Editor({ documentId, userId }: { documentId: string; userId: string }) {
+export interface Follow {
+  userId: string;
+  nonce: number;
+}
+
+export function presentPeople(cursors: RemoteCursor[], selfId: string): DocumentPerson[] {
+  const people = new Map<string, DocumentPerson>();
+  for (const cursor of cursors) {
+    if (cursor.user.id !== selfId) people.set(cursor.user.id, cursor.user);
+  }
+  return [...people.values()].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+}
+
+export function Editor({
+  documentId,
+  userId,
+  onState,
+  onPeople,
+  follow,
+}: {
+  documentId: string;
+  userId: string;
+  onState?: (state: EditorState) => void;
+  onPeople?: (people: DocumentPerson[]) => void;
+  follow?: Follow | null;
+}) {
   const area = useRef<HTMLTextAreaElement>(null);
   const controller = useRef<EditionController | null>(null);
   const [status, setStatus] = useState<EditionStatus>('chargement');
@@ -35,6 +50,14 @@ export function Editor({ documentId, userId }: { documentId: string; userId: str
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
   const [placed, setPlaced] = useState<PlacedCursor[]>([]);
   const [layout, setLayout] = useState(0);
+  const [followed, setFollowed] = useState<string | null>(null);
+  const callbacks = useRef({ onState, onPeople });
+  const latestCursors = useRef(cursors);
+
+  useLayoutEffect(() => {
+    callbacks.current = { onState, onPeople };
+    latestCursors.current = cursors;
+  });
 
   const relayout = () => setLayout((n) => n + 1);
 
@@ -42,6 +65,14 @@ export function Editor({ documentId, userId }: { documentId: string; userId: str
     const el = area.current;
     if (el) controller.current?.moveCursor(el.selectionStart, el.selectionEnd);
   };
+
+  useEffect(() => {
+    callbacks.current.onState?.({ status, message, canEdit, ready });
+  }, [status, message, canEdit, ready]);
+
+  useEffect(() => {
+    callbacks.current.onPeople?.(presentPeople(cursors, userId));
+  }, [cursors, userId]);
 
   useEffect(() => {
     setReady(false);
@@ -111,6 +142,19 @@ export function Editor({ documentId, userId }: { documentId: string; userId: str
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const el = area.current;
+    if (!follow || !el) return;
+    const cursor = latestCursors.current.find((c) => c.user.id === follow.userId);
+    if (!cursor) return;
+    const box = caretBox(el, cursor.end);
+    el.scrollTop += box.top - el.clientHeight / 3;
+    setFollowed(cursor.key);
+    relayout();
+    const timer = setTimeout(() => setFollowed(null), 1_500);
+    return () => clearTimeout(timer);
+  }, [follow]);
+
   useLayoutEffect(() => {
     const el = area.current;
     if (!el) return;
@@ -126,67 +170,46 @@ export function Editor({ documentId, userId }: { documentId: string; userId: str
     );
   }, [cursors, layout, userId]);
 
-  const people = presentPeople(cursors, userId);
-
   return (
-    <div className="ed-editeur">
-      <div className="ed-barre">
-        <p className={`ed-etat ed-etat-${status}`} role="status">
-          {message ?? STATUS_LABEL[status]}
-        </p>
-        {people.length > 0 && (
-          <p className="ed-presents">
-            <span className="ed-etat">Aussi ici :</span>
-            {people.map((name) => (
-              <span key={name} className="ed-present">
-                {name}
-              </span>
-            ))}
-          </p>
-        )}
-        {status === 'erreur' && (
-          <Button variant="discret" onClick={() => window.location.reload()}>
-            Recharger
-          </Button>
-        )}
-        {ready && !canEdit && <p className="ed-etat">Lecture seule</p>}
-      </div>
-      <div className="ed-zone">
-        <textarea
-          ref={area}
-          className="ed-texte"
-          aria-label="Contenu du document"
-          spellCheck
-          disabled={!ready}
-          readOnly={!canEdit || status === 'erreur'}
-          onInput={(event) => {
-            controller.current?.change(event.currentTarget.value, event.currentTarget.selectionEnd);
-            reportSelection();
-            relayout();
-          }}
-          onSelect={reportSelection}
-          onScroll={relayout}
-        />
-        <div className="ed-curseurs" aria-hidden="true">
-          {placed.map((cursor) => (
-            <span
-              key={cursor.key}
-              className={
-                cursor.box.top < cursor.box.height ? 'ed-curseur ed-curseur-bas' : 'ed-curseur'
-              }
-              style={{
-                top: cursor.box.top,
-                left: cursor.box.left,
-                height: cursor.box.height,
-                backgroundColor: cursor.color,
-              }}
-            >
-              <span className="ed-curseur-nom" style={{ backgroundColor: cursor.color }}>
-                {cursor.user.name}
-              </span>
+    <div className="ed-zone">
+      <textarea
+        ref={area}
+        className="ed-texte"
+        aria-label="Contenu du document"
+        spellCheck
+        disabled={!ready}
+        readOnly={!canEdit || status === 'erreur'}
+        onInput={(event) => {
+          controller.current?.change(event.currentTarget.value, event.currentTarget.selectionEnd);
+          reportSelection();
+          relayout();
+        }}
+        onSelect={reportSelection}
+        onScroll={relayout}
+      />
+      <div className="ed-curseurs" aria-hidden="true">
+        {placed.map((cursor) => (
+          <span
+            key={cursor.key}
+            className={[
+              'ed-curseur',
+              cursor.box.top < cursor.box.height ? 'ed-curseur-bas' : '',
+              followed === cursor.key ? 'ed-curseur-suivi' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            style={{
+              top: cursor.box.top,
+              left: cursor.box.left,
+              height: cursor.box.height,
+              backgroundColor: cursor.color,
+            }}
+          >
+            <span className="ed-curseur-nom" style={{ backgroundColor: cursor.color }}>
+              {cursor.user.name}
             </span>
-          ))}
-        </div>
+          </span>
+        ))}
       </div>
     </div>
   );
