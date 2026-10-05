@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { DocumentDetail, DocumentPerson } from '@documental/contracts/documents';
+import type { DocumentDetail, DocumentFile, DocumentPerson } from '@documental/contracts/documents';
 import { api, ApiError } from '@/api';
+import { Attachments } from '@/documents/Attachments';
 import { DocumentBar } from '@/documents/DocumentBar';
 import { Markdown } from '@/documents/Markdown';
 import { itemHref, useSignedIn } from '@/documents/shared';
@@ -118,6 +119,13 @@ export function DocumentPage({ id }: { id: string }) {
             ) : (
               <p className="doc-discret">Ce document est vide.</p>
             ))}
+          <Attachments
+            documentId={item.id}
+            files={detail.files}
+            canWrite={canWrite}
+            canManage={detail.access.manage}
+            onChange={(files: DocumentFile[]) => setDetail({ ...detail, files })}
+          />
         </>
       ) : (
         <Card>

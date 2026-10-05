@@ -4,14 +4,21 @@ import { z } from 'zod';
 import type { Deps } from '@/app';
 import { requireUser, type SessionUser } from '@/auth/middleware';
 import { accessTo, canCreate } from '@/documents/access';
+import { fileNameFor, sniffFileMime } from '@/documents/file-type';
+import { DocumentFileStore, FileNameTakenError, freeName } from '@/documents/files-store';
 import { DocumentStore, NameTakenError } from '@/documents/store';
 import {
   canManageDocument,
   type DocumentDetail,
+  DOCUMENT_FILES_MAX,
   type DocumentItem,
   documentNameProblem,
+  FILE_MAX_BYTES,
+  fileNameProblem,
   type FolderListing,
+  formatFileSize,
   normalizeDocumentName,
+  normalizeFileName,
 } from '@documental/contracts/documents';
 
 const id = z.string().min(1).max(64);
@@ -70,12 +77,15 @@ async function readJson(request: Request): Promise<unknown> {
 }
 
 function nameTaken(error: unknown): never {
-  if (error instanceof NameTakenError) throw new HTTPException(409, { message: error.message });
+  if (error instanceof NameTakenError || error instanceof FileNameTakenError) {
+    throw new HTTPException(409, { message: error.message });
+  }
   throw error;
 }
 
 export function documentRoutes(deps: Deps) {
   const store = new DocumentStore(deps.db);
+  const files = new DocumentFileStore(deps.db);
   const app = new Hono();
 
   async function folderOr404(folderId: string | null) {
@@ -105,12 +115,102 @@ export function documentRoutes(deps: Deps) {
 
   app.get('/partages', async (c) => c.json({ items: await store.sharedWith(currentUser(c).id) }));
 
+  app.get('/fichiers/:fileId', async (c) => {
+    const file = await files.get(c.req.param('fileId'));
+    if (!file) throw new HTTPException(404, { message: 'Fichier introuvable' });
+    const stored = await files.bytes(file.id);
+    if (!stored) throw new HTTPException(404, { message: 'Fichier introuvable' });
+
+    const etag = `"${stored.sha256}"`;
+    if (c.req.header('if-none-match') === etag) return c.body(null, 304);
+
+    c.header('content-type', file.mime);
+    c.header('content-length', String(file.size));
+    c.header('etag', etag);
+    c.header('cache-control', 'private, max-age=31536000, immutable');
+    c.header(
+      'content-disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    );
+    return c.body(stored.bytes as unknown as ArrayBuffer);
+  });
+
+  app.post('/fichiers/:documentId', async (c) => {
+    const item = await store.get(c.req.param('documentId'));
+    if (!item) throw new HTTPException(404, { message: 'Document introuvable' });
+    if (item.kind === 'folder') {
+      throw new HTTPException(409, { message: 'Un dossier ne porte pas de fichier.' });
+    }
+    const access = await accessTo(store, currentUser(c), item);
+    if (!access.write) {
+      throw new HTTPException(403, { message: 'Vous ne pouvez pas modifier ce document.' });
+    }
+
+    const form = await c.req.formData().catch(() => {
+      throw new HTTPException(400, { message: 'Envoi invalide' });
+    });
+    const sent = form.get('fichier');
+    if (!(sent instanceof File)) {
+      throw new HTTPException(400, { message: 'Aucun fichier reçu' });
+    }
+    if (sent.size === 0) throw new HTTPException(400, { message: 'Le fichier est vide.' });
+    if (sent.size > FILE_MAX_BYTES) {
+      throw new HTTPException(413, {
+        message: `Le fichier dépasse ${formatFileSize(FILE_MAX_BYTES)}.`,
+      });
+    }
+
+    const problem = fileNameProblem(sent.name);
+    if (problem) throw new HTTPException(400, { message: problem });
+
+    const bytes = new Uint8Array(await sent.arrayBuffer());
+    const mime = sniffFileMime(bytes);
+    if (!mime) {
+      throw new HTTPException(415, {
+        message: 'Type de fichier non accepté : PDF, PNG, JPEG, WebP ou GIF.',
+      });
+    }
+    if ((await files.countFor(item.id)) >= DOCUMENT_FILES_MAX) {
+      throw new HTTPException(409, {
+        message: `Ce document a déjà ${DOCUMENT_FILES_MAX} fichiers.`,
+      });
+    }
+
+    const taken = new Set((await files.list(item.id)).map((f) => f.name));
+    const file = await files
+      .add({
+        documentId: item.id,
+        name: freeName(taken, fileNameFor(normalizeFileName(sent.name), mime)),
+        mime,
+        usage: 'attachment',
+        bytes,
+        userId: currentUser(c).id,
+      })
+      .catch(nameTaken);
+    return c.json({ file }, 201);
+  });
+
+  app.delete('/fichiers/:fileId', async (c) => {
+    const file = await files.get(c.req.param('fileId'));
+    if (!file) throw new HTTPException(404, { message: 'Fichier introuvable' });
+    const item = await store.get(file.documentId);
+    if (!item) throw new HTTPException(404, { message: 'Document introuvable' });
+    if (!canManageDocument(currentUser(c), item)) {
+      throw new HTTPException(403, {
+        message: 'Seuls la personne qui l’a créé et les admins peuvent faire ça.',
+      });
+    }
+    await files.remove(file.id);
+    return c.body(null, 204);
+  });
+
   app.get('/:id', async (c) => {
     const item = await store.get(c.req.param('id'));
     if (!item) throw new HTTPException(404, { message: 'Document introuvable' });
     const detail: DocumentDetail = {
       item,
       path: await store.path(item.id),
+      files: await files.list(item.id),
       access: await accessTo(store, currentUser(c), item),
     };
     return c.json(detail);

@@ -38,6 +38,7 @@ const detail: DocumentDetail = {
     createdBy: { id: 'u1', name: 'Éa' },
   },
   path: [{ id: 'd1', name: 'Charte' }],
+  files: [],
   access: { write: true, manage: true },
 };
 

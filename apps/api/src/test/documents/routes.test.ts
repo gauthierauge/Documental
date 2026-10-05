@@ -1,4 +1,9 @@
-import type { DocumentItem, FolderListing } from '@documental/contracts/documents';
+import type {
+  DocumentDetail,
+  DocumentFile,
+  DocumentItem,
+  FolderListing,
+} from '@documental/contracts/documents';
 import { ORIGIN, signInAs } from '@/test/support/auth-helpers';
 import { testApp } from '@/test/support/helpers';
 
@@ -7,11 +12,15 @@ type App = Awaited<ReturnType<typeof testApp>>;
 let t: App;
 let editor: string;
 let reader: string;
+let other: string;
+let admin: string;
 
 beforeAll(async () => {
   t = await testApp();
   editor = await signInAs(t, 'editeur');
   reader = await signInAs(t, 'lecteur');
+  other = await signInAs(t, 'editeur');
+  admin = await signInAs(t, 'admin');
 });
 
 function call(cookie: string, path: string, init: { method?: string; body?: unknown } = {}) {
@@ -144,8 +153,6 @@ describe('Espace documentaire', () => {
 
   it('réserve renommage, déplacement et suppression au créateur et aux admins', async () => {
     const doc = await create('text', 'À Alice');
-    const other = await signInAs(t, 'editeur');
-    const admin = await signInAs(t, 'admin');
     expect(
       (await call(other, `/${doc.id}`, { method: 'PATCH', body: { name: 'Non' } })).status,
     ).toBe(403);
@@ -164,5 +171,200 @@ describe('Espace documentaire', () => {
     const response = await call(reader, '/dossiers');
     const { folders } = (await response.json()) as { folders: { id: string }[] };
     expect(folders.map((f) => f.id)).toContain(folder.id);
+  });
+});
+
+describe('Fichiers joints', () => {
+  const PDF = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37, 0x0a, 0x25, 0xe2]);
+  const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01, 0x02]);
+  const TEXTE = new Uint8Array([...'bonjour'].map((c) => c.charCodeAt(0)));
+
+  function send(
+    cookie: string,
+    documentId: string,
+    bytes: Uint8Array,
+    name: string,
+  ): Promise<Response> {
+    const form = new FormData();
+    form.set('fichier', new File([bytes as BlobPart], name));
+    return Promise.resolve(
+      t.app.request(`/api/documents/fichiers/${documentId}`, {
+        method: 'POST',
+        headers: { cookie, origin: ORIGIN },
+        body: form,
+      }),
+    );
+  }
+
+  async function sendOk(cookie: string, documentId: string, bytes: Uint8Array, name: string) {
+    const response = await send(cookie, documentId, bytes, name);
+    expect(response.status).toBe(201);
+    return ((await response.json()) as { file: DocumentFile }).file;
+  }
+
+  function read(cookie: string, fileId: string, headers: Record<string, string> = {}) {
+    return t.app.request(`/api/documents/fichiers/${fileId}`, {
+      headers: { cookie, origin: ORIGIN, ...headers },
+    });
+  }
+
+  function remove(cookie: string, fileId: string) {
+    return t.app.request(`/api/documents/fichiers/${fileId}`, {
+      method: 'DELETE',
+      headers: { cookie, origin: ORIGIN },
+    });
+  }
+
+  async function detail(cookie: string, id: string): Promise<DocumentDetail> {
+    const response = await call(cookie, `/${id}`);
+    expect(response.status).toBe(200);
+    return (await response.json()) as DocumentDetail;
+  }
+
+  it('rend les octets envoyés, intacts', async () => {
+    const doc = await create('text', 'Avec un PDF');
+    const file = await sendOk(editor, doc.id, PDF, 'plan.pdf');
+    expect(file).toMatchObject({ name: 'plan.pdf', mime: 'application/pdf', size: PDF.length });
+
+    const response = await read(editor, file.id);
+    expect(response.status).toBe(200);
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(PDF);
+  });
+
+  it('sert le fichier en pièce jointe, jamais à ouvrir dans la page', async () => {
+    const doc = await create('text', 'Disposition');
+    const file = await sendOk(editor, doc.id, PDF, 'rapport final.pdf');
+    const response = await read(editor, file.id);
+    expect(response.headers.get('content-type')).toBe('application/pdf');
+    expect(response.headers.get('content-disposition')).toBe(
+      "attachment; filename*=UTF-8''rapport%20final.pdf",
+    );
+  });
+
+  it('répond 304 quand le client a déjà le fichier', async () => {
+    const doc = await create('text', 'Cache');
+    const file = await sendOk(editor, doc.id, PNG, 'image.png');
+    const first = await read(editor, file.id);
+    const etag = first.headers.get('etag') ?? '';
+    expect(etag).not.toBe('');
+    expect(first.headers.get('cache-control')).toContain('immutable');
+
+    const again = await read(editor, file.id, { 'if-none-match': etag });
+    expect(again.status).toBe(304);
+  });
+
+  it('déduit le type des octets, pas de ce que le client annonce', async () => {
+    const doc = await create('text', 'Type menti');
+    const form = new FormData();
+    form.set('fichier', new File([PDF as BlobPart], 'photo.png', { type: 'image/png' }));
+    const response = await t.app.request(`/api/documents/fichiers/${doc.id}`, {
+      method: 'POST',
+      headers: { cookie: editor, origin: ORIGIN },
+      body: form,
+    });
+    expect(response.status).toBe(201);
+    const { file } = (await response.json()) as { file: DocumentFile };
+    expect(file.mime).toBe('application/pdf');
+    expect(file.name).toBe('photo.pdf');
+  });
+
+  it('refuse un type hors de la liste blanche', async () => {
+    const doc = await create('text', 'Type refusé');
+    const response = await send(editor, doc.id, TEXTE, 'notes.txt');
+    expect(response.status).toBe(415);
+  });
+
+  it('refuse un SVG, même nommé en image', async () => {
+    const doc = await create('text', 'SVG refusé');
+    const svg = new Uint8Array([...'<svg onload=alert(1)>'].map((c) => c.charCodeAt(0)));
+    expect((await send(editor, doc.id, svg, 'logo.svg')).status).toBe(415);
+    expect((await send(editor, doc.id, svg, 'logo.png')).status).toBe(415);
+  });
+
+  it('refuse un fichier vide', async () => {
+    const doc = await create('text', 'Vide');
+    expect((await send(editor, doc.id, new Uint8Array(), 'rien.pdf')).status).toBe(400);
+  });
+
+  it('distingue deux fichiers de même nom au lieu de les refuser', async () => {
+    const doc = await create('text', 'Deux fois le même nom');
+    expect((await sendOk(editor, doc.id, PDF, 'plan.pdf')).name).toBe('plan.pdf');
+    expect((await sendOk(editor, doc.id, PNG, 'plan.png')).name).toBe('plan.png');
+    const autre = new Uint8Array([...PDF, 0x0a]);
+    expect((await sendOk(editor, doc.id, autre, 'plan.pdf')).name).toBe('plan (2).pdf');
+  });
+
+  it('liste les fichiers avec le document, sans leurs octets', async () => {
+    const doc = await create('text', 'Liste');
+    await sendOk(editor, doc.id, PDF, 'a.pdf');
+    await sendOk(editor, doc.id, PNG, 'b.png');
+    const { files } = await detail(editor, doc.id);
+    expect(files.map((f) => f.name)).toEqual(['a.pdf', 'b.png']);
+    expect(files[0]).not.toHaveProperty('bytes');
+    expect(files[0]?.createdBy?.name).toBe('editeur');
+  });
+
+  it('refuse un fichier sur un dossier', async () => {
+    const created = await t.app.request('/api/documents', {
+      method: 'POST',
+      headers: { cookie: editor, origin: ORIGIN, 'content-type': 'application/json' },
+      body: JSON.stringify({ kind: 'folder', name: 'Un dossier', parentId: null }),
+    });
+    const { item } = (await created.json()) as { item: DocumentItem };
+    expect((await send(editor, item.id, PDF, 'plan.pdf')).status).toBe(409);
+  });
+
+  it('répond 404 sur un document ou un fichier inconnu', async () => {
+    expect((await send(editor, 'inconnu', PDF, 'plan.pdf')).status).toBe(404);
+    expect((await read(editor, 'inconnu')).status).toBe(404);
+  });
+
+  it('exige une connexion pour lire un fichier', async () => {
+    const doc = await create('text', 'Protégé');
+    const file = await sendOk(editor, doc.id, PDF, 'plan.pdf');
+    expect((await read('', file.id)).status).toBe(401);
+  });
+
+  it('interdit l’envoi à qui n’a pas l’écriture sur le document', async () => {
+    const doc = await create('text', 'Pas le mien');
+    expect((await send(other, doc.id, PDF, 'plan.pdf')).status).toBe(403);
+  });
+
+  it('réserve la suppression à qui gère le document', async () => {
+    const doc = await create('text', 'Suppression');
+    const file = await sendOk(editor, doc.id, PDF, 'plan.pdf');
+    const refus = await t.app.request(`/api/documents/fichiers/${file.id}`, {
+      method: 'DELETE',
+      headers: { cookie: other, origin: ORIGIN },
+    });
+    expect(refus.status).toBe(403);
+
+    const ok = await t.app.request(`/api/documents/fichiers/${file.id}`, {
+      method: 'DELETE',
+      headers: { cookie: editor, origin: ORIGIN },
+    });
+    expect(ok.status).toBe(204);
+    expect((await read(editor, file.id)).status).toBe(404);
+  });
+
+  it('laisse un admin gérer les fichiers d’un document qu’il n’a pas créé', async () => {
+    const doc = await create('text', 'Document d’un autre');
+    const file = await sendOk(editor, doc.id, PDF, 'plan.pdf');
+    const supprime = await t.app.request(`/api/documents/fichiers/${file.id}`, {
+      method: 'DELETE',
+      headers: { cookie: admin, origin: ORIGIN },
+    });
+    expect(supprime.status).toBe(204);
+  });
+
+  it('emporte les fichiers quand le document disparaît', async () => {
+    const doc = await create('text', 'À supprimer');
+    const file = await sendOk(editor, doc.id, PDF, 'plan.pdf');
+    const supprime = await t.app.request(`/api/documents/${doc.id}`, {
+      method: 'DELETE',
+      headers: { cookie: editor, origin: ORIGIN },
+    });
+    expect(supprime.status).toBe(204);
+    expect((await read(editor, file.id)).status).toBe(404);
   });
 });

@@ -300,3 +300,44 @@
 .ed-zone[hidden] {
   display: none;
 }
+
+.doc-pieces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-piece {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-2) var(--espace-3);
+  padding-block: var(--espace-2);
+}
+
+.doc-piece + .doc-piece {
+  border-block-start: var(--trait-fin) solid var(--couleur-bordure);
+}
+
+.doc-piece-nom {
+  font-weight: var(--graisse-moyenne);
+}
+
+.doc-depot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-3);
+  margin-block-start: var(--espace-4);
+  padding: var(--espace-4);
+  border: var(--trait-fin) dashed var(--couleur-bordure-forte);
+  border-radius: var(--rayon-moyen);
+}
+
+.doc-depot-survol {
+  border-color: var(--couleur-accent);
+  background: var(--couleur-accent-doux);
+}
