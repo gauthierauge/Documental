@@ -5,8 +5,12 @@ import { Field, Input } from '@/ui/Field';
 import { Notice } from '@/ui/Notice';
 import { Page } from '@/ui/Page';
 import { authClient, errorMessage } from './client';
+import { useRedirectWhenSignedIn } from '@/auth/AuthLayout';
+
+const toDocuments = () => '/documents';
 
 export function ForgotPassword() {
+  useRedirectWhenSignedIn(toDocuments);
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

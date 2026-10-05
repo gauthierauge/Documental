@@ -30,6 +30,23 @@ describe('App', () => {
     await waitFor(() => expect(window.location.pathname).not.toBe('/'));
   });
 
+  it.each(['/connexion', '/mot-de-passe/oublie', '/mot-de-passe/nouveau'])(
+    'affiche %s seule, sans menu ni barre du haut',
+    (path) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => respond({})),
+      );
+      window.history.pushState(null, '', path);
+      render(<App />);
+      expect(screen.getByRole('main')).toHaveAttribute('id', 'contenu');
+      expect(screen.getByText('Documental')).toBeInTheDocument();
+      expect(screen.queryByRole('navigation', { name: 'Navigation principale' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Documents' })).toBeNull();
+      expect(document.querySelector('.ui-coquille')).toBeNull();
+    },
+  );
+
   it('répond « Page introuvable » sur une adresse inconnue', () => {
     vi.stubGlobal(
       'fetch',

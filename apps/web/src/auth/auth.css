@@ -19,3 +19,42 @@
   padding: 0;
   list-style: none;
 }
+
+.auth-fond {
+  display: grid;
+  min-height: 100dvh;
+  padding: var(--espace-5) var(--espace-4);
+  place-items: center;
+  background: var(--couleur-fond);
+}
+
+.auth-cadre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+  width: min(100%, var(--largeur-formulaire));
+}
+
+.auth-cadre:focus {
+  outline: none;
+}
+
+.auth-marque {
+  margin: 0;
+  color: var(--couleur-texte);
+  font: var(--typo-titre-3);
+  text-align: center;
+}
+
+.auth-carte {
+  padding: var(--espace-6) var(--espace-5);
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--carte-fond);
+  color: var(--carte-texte);
+  box-shadow: var(--carte-ombre);
+}
+
+.auth-carte .ui-page-etroite {
+  max-width: none;
+}

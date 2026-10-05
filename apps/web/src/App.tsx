@@ -10,6 +10,7 @@ import { SetPassword } from './auth/SetPassword';
 import { AccountNav } from './auth/AccountNav';
 import { AdminApp } from './admin/AdminApp';
 import { AdminNav } from './admin/AdminNav';
+import { AUTH_PATHS, AuthLayout } from '@/auth/AuthLayout';
 import { DocumentPage } from '@/documents/DocumentPage';
 import { Documents } from '@/documents/Documents';
 
@@ -39,6 +40,13 @@ function Screen({ path }: { path: string }) {
 export function App() {
   const path = usePath();
   if (path === '/admin' || path.startsWith('/admin/')) return <AdminApp />;
+  if (AUTH_PATHS.includes(path)) {
+    return (
+      <AuthLayout title="Documental">
+        <Screen path={path} />
+      </AuthLayout>
+    );
+  }
   return (
     <AppShell title={'Documental'} pages={PAGES} account={ACCOUNT}>
       <Screen path={path} />
