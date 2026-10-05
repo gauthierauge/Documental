@@ -1,6 +1,17 @@
 // Schéma de la base. Généré par le kit, puis à toi : modifie-le, puis `bun run db:generate`
 // pour écrire la migration. Les contenus du panel admin se déclarent dans admin.config.ts.
-import { bigint, boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  type AnyPgColumn,
+  bigint,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+} from 'drizzle-orm/pg-core';
 
 // --- Authentification (Better Auth). Les noms des clés sont imposés par Better Auth.
 
@@ -137,6 +148,32 @@ export const clients = pgTable('clients', {
     .$defaultFn(() => new Date()),
   archived_at: timestamp('archived_at', { withTimezone: true }),
 });
+
+export const document = pgTable(
+  'document',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    parentId: text('parent_id').references((): AnyPgColumn => document.id, {
+      onDelete: 'cascade',
+    }),
+    kind: text('kind', { enum: ['folder', 'text', 'file'] }).notNull(),
+    name: text('name').notNull(),
+    createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedBy: text('updated_by').references(() => user.id, { onDelete: 'set null' }),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index('document_parent_idx').on(t.parentId),
+    unique('document_name_unique').on(t.parentId, t.name).nullsNotDistinct(),
+  ],
+);
 
 /** Les tables des contenus, par clé : le panel admin les retrouve ici. */
 export const contentTables = {
