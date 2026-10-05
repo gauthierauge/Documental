@@ -57,7 +57,8 @@ describe('Espace documentaire', () => {
     ]);
     expect(result.items[1]?.updatedBy?.name).toBe('editeur');
     expect(Date.parse(result.items[1]?.updatedAt ?? '')).not.toBeNaN();
-    expect(result.canEdit).toBe(false);
+    expect(result.canCreate).toBe(false);
+    expect(result.items[1]?.createdBy?.name).toBe('editeur');
   });
 
   it('donne le chemin d’un document', async () => {
@@ -139,6 +140,23 @@ describe('Espace documentaire', () => {
       (await call(reader, `/${doc.id}`, { method: 'PATCH', body: { name: 'Non' } })).status,
     ).toBe(403);
     expect((await call(reader, `/${doc.id}`, { method: 'DELETE' })).status).toBe(403);
+  });
+
+  it('réserve renommage, déplacement et suppression au créateur et aux admins', async () => {
+    const doc = await create('text', 'À Alice');
+    const other = await signInAs(t, 'editeur');
+    const admin = await signInAs(t, 'admin');
+    expect(
+      (await call(other, `/${doc.id}`, { method: 'PATCH', body: { name: 'Non' } })).status,
+    ).toBe(403);
+    expect((await call(other, `/${doc.id}`, { method: 'DELETE' })).status).toBe(403);
+    expect(
+      (await call(admin, `/${doc.id}`, { method: 'PATCH', body: { name: 'Par l’admin' } })).status,
+    ).toBe(200);
+    const detail = (await (await call(other, `/${doc.id}`)).json()) as {
+      access: { write: boolean; manage: boolean };
+    };
+    expect(detail.access).toEqual({ write: false, manage: false });
   });
 
   it('liste tous les dossiers pour choisir une destination', async () => {

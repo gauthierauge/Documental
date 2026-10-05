@@ -13,13 +13,14 @@ import {
   transform,
 } from '@documental/contracts/text-operation';
 import type { Db } from '@/db/client';
-import { document, documentOperation, user } from '@/db/schema';
+import { document, documentCollaborator, documentOperation, user } from '@/db/schema';
+import type { SessionUser } from '@/auth/middleware';
 
 export const EDITION_CHANNEL = 'documental_edition';
 
 export class EditionError extends Error {
   constructor(
-    readonly status: 400 | 404 | 409 | 413,
+    readonly status: 400 | 403 | 404 | 409 | 413,
     message: string,
   ) {
     super(message);
@@ -83,6 +84,10 @@ export class EditionStore {
     return row ?? null;
   }
 
+  async notify(channel: string, payload: string): Promise<void> {
+    await this.db.execute(sql`select pg_notify(${channel}, ${payload})`);
+  }
+
   async since(documentId: string, revision: number): Promise<CommittedOperation[]> {
     return (await operationsBetween(this.db, documentId, revision)).map(toCommitted);
   }
@@ -90,15 +95,34 @@ export class EditionStore {
   submit(
     documentId: string,
     submission: OperationSubmission,
-    userId: string,
+    author: Pick<SessionUser, 'id' | 'role'>,
   ): Promise<SubmissionResult> {
+    const userId = author.id;
     return this.db.transaction(async (tx) => {
       const [current] = await tx
-        .select({ content: document.content, revision: document.revision })
+        .select({
+          content: document.content,
+          revision: document.revision,
+          createdBy: document.createdBy,
+        })
         .from(document)
         .where(and(eq(document.id, documentId), eq(document.kind, 'text')))
         .for('update');
       if (!current) throw new EditionError(404, 'Document introuvable');
+      if (author.role !== 'admin' && current.createdBy !== userId) {
+        const [invited] = await tx
+          .select({ userId: documentCollaborator.userId })
+          .from(documentCollaborator)
+          .where(
+            and(
+              eq(documentCollaborator.documentId, documentId),
+              eq(documentCollaborator.userId, userId),
+            ),
+          );
+        if (!invited) {
+          throw new EditionError(403, 'Vous n’êtes pas invité à modifier ce document.');
+        }
+      }
       if (submission.base > current.revision) {
         throw new EditionError(409, 'Version inconnue : rechargez le document.');
       }

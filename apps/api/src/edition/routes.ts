@@ -3,7 +3,9 @@ import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import type { Deps } from '@/app';
 import { requireUser, type SessionUser } from '@/auth/middleware';
-import { type Connection, EDITORS, EditionHub, submissionSchema } from '@/edition/hub';
+import { accessTo } from '@/documents/access';
+import { DocumentStore } from '@/documents/store';
+import { type Connection, EditionHub, submissionSchema } from '@/edition/hub';
 import { EditionError, EditionStore } from '@/edition/store';
 import type { DocumentContent, OperationsSince } from '@documental/contracts/edition';
 
@@ -35,7 +37,8 @@ async function readJson(request: Request): Promise<unknown> {
 
 export function editionRoutes(deps: Deps) {
   const store = new EditionStore(deps.db);
-  const hub = new EditionHub(store, deps.listen);
+  const documents = new DocumentStore(deps.db);
+  const hub = new EditionHub(store, documents, deps.listen);
   const app = new Hono();
   const allowedOrigin = new URL(deps.env.APP_URL).origin;
 
@@ -79,10 +82,11 @@ export function editionRoutes(deps: Deps) {
 
   app.get('/:id/contenu', async (c) => {
     const found = await store.content(c.req.param('id'));
-    if (!found) throw new HTTPException(404, { message: 'Document introuvable' });
+    const item = await documents.get(c.req.param('id'));
+    if (!found || !item) throw new HTTPException(404, { message: 'Document introuvable' });
     const result: DocumentContent = {
       ...found,
-      canEdit: EDITORS.includes(currentUser(c).role),
+      canEdit: (await accessTo(documents, currentUser(c), item)).write,
     };
     return c.json(result);
   });
@@ -113,10 +117,10 @@ export function editionRoutes(deps: Deps) {
     live,
   );
 
-  app.post('/:id/operations', requireUser('admin', 'editeur'), async (c) => {
+  app.post('/:id/operations', async (c) => {
     const submission = parse(submissionSchema, await readJson(c.req.raw));
     try {
-      return c.json(await store.submit(c.req.param('id'), submission, currentUser(c).id));
+      return c.json(await store.submit(c.req.param('id'), submission, currentUser(c)));
     } catch (error) {
       if (error instanceof EditionError) {
         throw new HTTPException(error.status, { message: error.message });

@@ -22,6 +22,7 @@ export interface DocumentItem {
   createdAt: string;
   updatedAt: string;
   updatedBy: DocumentPerson | null;
+  createdBy: DocumentPerson | null;
 }
 
 export interface DocumentCrumb {
@@ -33,13 +34,40 @@ export interface FolderListing {
   folder: DocumentItem | null;
   path: DocumentCrumb[];
   items: DocumentItem[];
-  canEdit: boolean;
+  canCreate: boolean;
+}
+
+export interface DocumentAccess {
+  write: boolean;
+  manage: boolean;
 }
 
 export interface DocumentDetail {
   item: DocumentItem;
   path: DocumentCrumb[];
-  canEdit: boolean;
+  access: DocumentAccess;
+}
+
+export interface Collaborator extends DocumentPerson {
+  email: string;
+  invitedAt: string;
+}
+
+export interface CollaboratorList {
+  owner: DocumentPerson | null;
+  collaborators: Collaborator[];
+  canManage: boolean;
+}
+
+export interface InvitableAccount extends DocumentPerson {
+  email: string;
+}
+
+export function canManageDocument(
+  user: { id: string; role: string },
+  item: Pick<DocumentItem, 'createdBy'>,
+): boolean {
+  return user.role === 'admin' || item.createdBy?.id === user.id;
 }
 
 export interface FolderSummary {

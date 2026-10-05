@@ -1,0 +1,35 @@
+.inv-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inv-liste li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-1) var(--espace-3);
+  min-height: var(--taille-cible);
+}
+
+.inv-liste li > :last-child:is(button) {
+  margin-inline-start: auto;
+}
+
+.inv-nom {
+  font-weight: var(--graisse-moyenne);
+}
+
+.inv-role {
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.inv-recherche {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+}

@@ -17,6 +17,7 @@ function moved(id: string, kind: DocumentItem['kind'] = 'folder'): DocumentItem 
     createdAt: '',
     updatedAt: '',
     updatedBy: null,
+    createdBy: null,
   };
 }
 

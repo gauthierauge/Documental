@@ -9,6 +9,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -175,6 +176,26 @@ export const document = pgTable(
   (t) => [
     index('document_parent_idx').on(t.parentId),
     unique('document_name_unique').on(t.parentId, t.name).nullsNotDistinct(),
+  ],
+);
+
+export const documentCollaborator = pgTable(
+  'document_collaborator',
+  {
+    documentId: text('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    invitedBy: text('invited_by').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    primaryKey({ columns: [t.documentId, t.userId] }),
+    index('document_collaborator_user_idx').on(t.userId),
   ],
 );
 
