@@ -9,7 +9,6 @@ import { rateLimit } from './http/rate-limit';
 import { rateLimitStore } from './http/rate-limit-store';
 import { type LogWriter, requestLog } from './http/request-log';
 import { securityTxtHandler } from './http/security-txt';
-import { startupRoutes } from './startup/routes';
 import { type Db, type Listen, ping } from './db/client';
 import type { UpgradeWebSocket } from 'hono/ws';
 import type { Mailer } from './mail/mailer';
@@ -95,7 +94,6 @@ export function createApp(deps: Deps) {
   api.route('/documents', documentRoutes(deps));
   api.route('/documents', editionRoutes(deps));
   api.route('/documents', invitationRoutes(deps));
-  if (deps.env.NODE_ENV !== 'production') api.route('/demarrage', startupRoutes(deps));
 
   app.route('/api', api);
 

@@ -128,21 +128,6 @@ export const appSettings = pgTable('app_settings', {
   updatedBy: text('updated_by'),
 });
 
-export const clients = pgTable('clients', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  nom: text('nom').notNull(),
-  email: text('email'),
-  created_at: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  updated_at: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  archived_at: timestamp('archived_at', { withTimezone: true }),
-});
-
 export const document = pgTable(
   'document',
   {
@@ -212,9 +197,7 @@ export const documentOperation = pgTable(
   ],
 );
 
-export const contentTables = {
-  clients: clients,
-};
+export const contentTables: Record<string, never> = {};
 
 export const rateLimit = pgTable('rate_limit', {
   key: text('key').primaryKey(),

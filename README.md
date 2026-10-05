@@ -21,12 +21,10 @@ créé par `make env` (secrets tirés au hasard pour la machine) ; `make dev` le
 En production, les variables vivent chez l'hébergeur : `make env-check FICHIER=.env.production`
 vérifie un fichier avant le déploiement, et l'API refuse de démarrer avec une configuration de production à corriger.
 
-## Page « Démarrage »
+## Pages
 
-En développement, l'accueil (`/`) liste ce que contient le projet, l'état réel de chaque élément
-(API, base, connexion, modules) et le geste qui le vérifie. En production, la page n'existe pas
-(ni dans le bundle, ni dans l'API) : `apps/web/src/pages/Home.tsx`, l'accueil à personnaliser, la
-remplace.
+L'app ne fait que des documents : `/` mène à `/documents`, comme la connexion. « Mon compte »
+(`/compte`) regroupe le profil, la double authentification, le mot de passe et l'apparence.
 
 ## Design system
 
@@ -39,7 +37,7 @@ Thème Tech, en clair et en sombre : le mode suit celui du système.
   build.
 - Les composants de `apps/web/src/ui/` (boutons, champs, cartes, tableaux, pastilles, coquille) ne
   lisent que ces variables. `data-theme="clair"` ou `"sombre"` sur `<html>` force un mode, comme
-  le sélecteur « Apparence » du pied de page.
+  le réglage « Apparence » de « Mon compte ».
 - Polices embarquées sous licence OFL (avec leur licence) : aucune requête externe.
 
 ## Mise en page
@@ -79,9 +77,7 @@ Sur `/admin`. Décrit dans `packages/contracts/src/admin.config.ts` :
 contenus, droits par rôle (admin, éditeur, lecteur), réglages de l'app. Toute modification est
 inscrite au journal d'activité.
 
-Contenus gérés :
-
-- **Clients** : Nom (texte), E-mail (e-mail)
+Contenus gérés : aucun pour l'instant.
 
 Ajouter un contenu : `kit admin ajouter "Produits" nom:texte prix:montant`, puis `bun run db:generate`.
 

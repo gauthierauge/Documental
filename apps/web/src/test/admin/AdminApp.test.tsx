@@ -41,11 +41,11 @@ describe('Panel admin (écrans)', () => {
     );
     window.history.pushState(null, '', '/admin');
     render(<AdminApp />);
+    expect(await screen.findByRole('link', { name: 'Journal' })).toBeInTheDocument();
     for (const entity of adminConfig.entities) {
-      expect(await screen.findByRole('link', { name: entity.label })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: entity.label })).toBeInTheDocument();
     }
     expect(screen.queryByRole('link', { name: 'Comptes' })).toBeNull();
-    expect(screen.getByRole('link', { name: 'Journal' })).toBeInTheDocument();
   });
 
   it('aucun écran pour un contenu inconnu, ni pour une section réservée à un autre rôle', () => {

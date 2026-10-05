@@ -10,7 +10,7 @@ type Step = { kind: 'identifiants' } | { kind: 'code'; backup: boolean };
 
 function nextPath(): string {
   const next = new URLSearchParams(window.location.search).get('suite');
-  return next?.startsWith('/') && !next.startsWith('//') ? next : '/compte';
+  return next?.startsWith('/') && !next.startsWith('//') ? next : '/documents';
 }
 
 export function Login() {

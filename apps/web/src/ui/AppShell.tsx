@@ -1,6 +1,5 @@
 import { type ReactNode, useState } from 'react';
 import { Link } from '@/router';
-import { AppearanceSwitch } from './AppearanceSwitch';
 import { MenuButton } from './MenuButton';
 import { NavList } from './NavList';
 import type { NavItem } from './navigation';
@@ -64,7 +63,6 @@ export function AppShell({
           <span>
             © {new Date().getFullYear()} {title}
           </span>
-          <AppearanceSwitch />
         </footer>
       </div>
     </div>

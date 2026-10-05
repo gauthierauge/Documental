@@ -1,27 +1,7 @@
 import type { AdminConfig } from './admin-types';
 
 export const adminConfig: AdminConfig = {
-  entities: [
-    {
-      key: 'clients',
-      label: 'Clients',
-      actions: ['lire', 'creer', 'modifier', 'archiver', 'exporter'],
-      fields: [
-        {
-          key: 'nom',
-          label: 'Nom',
-          type: 'texte',
-          required: true,
-        },
-        {
-          key: 'email',
-          label: 'E-mail',
-          type: 'email',
-          required: false,
-        },
-      ],
-    },
-  ],
+  entities: [],
   settings: [
     {
       key: 'nom_affiche',

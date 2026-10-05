@@ -19,6 +19,11 @@ export function usePath(): string {
   );
 }
 
+export function redirect(to: string): void {
+  window.history.replaceState(null, '', to);
+  for (const listener of listeners) listener();
+}
+
 export function navigate(to: string): void {
   window.history.pushState(null, '', to);
   for (const listener of listeners) listener();
