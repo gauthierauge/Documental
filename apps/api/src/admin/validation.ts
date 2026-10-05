@@ -1,9 +1,6 @@
 import { z } from 'zod';
 import type { EntityConfig, FieldConfig, SettingConfig } from '@documental/contracts/admin-types';
 
-// Les schémas de validation se construisent à partir de admin.config.ts : un contenu ajouté
-// est validé côté serveur sans une ligne de code en plus.
-
 function fieldSchema(field: FieldConfig): z.ZodType {
   const error = `${field.label} : valeur invalide`;
   switch (field.type) {
@@ -45,7 +42,6 @@ export function entitySchemas(entity: EntityConfig) {
   const update: Record<string, z.ZodType> = {};
   for (const field of entity.fields) {
     const base = fieldSchema(field);
-    // Une saisie vide vaut « pas de valeur » ; un champ obligatoire la refuse.
     const optional = BLANKABLE.has(field.type)
       ? z.preprocess((v) => (isBlank(v) ? null : v), base.nullable())
       : base.nullable();
@@ -81,7 +77,6 @@ export function settingsSchema(settings: readonly SettingConfig[]) {
   return z.object(shape).strict();
 }
 
-/** Les erreurs de validation, lisibles par l'interface : un message par champ. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};
   for (const issue of error.issues) {

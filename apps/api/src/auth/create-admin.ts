@@ -6,8 +6,6 @@ import { createMailer } from '@/mail/mailer';
 import { sendAccessLink } from './admin-access';
 import { createAuth } from './auth';
 
-// Crée (ou promeut) un compte admin et lui envoie le lien pour choisir son mot de passe.
-// Usage : bun run admin:creer prenom@exemple.fr
 const email = process.argv[2]?.trim().toLowerCase();
 if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
   console.error('Usage : bun run admin:creer prenom@exemple.fr');
@@ -17,7 +15,6 @@ if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 const env = readEnv();
 const url = databaseUrl(env);
 if (url.startsWith('pglite://')) {
-  // PGlite n'accepte qu'un processus à la fois : l'API doit être arrêtée.
   const running = await fetch(`http://localhost:${env.PORT}/api/health`).then(
     () => true,
     () => false,

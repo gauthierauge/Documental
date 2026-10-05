@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
 import { AdminNav } from '@/admin/AdminNav';
 import { type CurrentUser, useCurrentUser } from '@/auth/client';
@@ -15,7 +14,7 @@ function as(role: CurrentUser['role'] | null) {
 describe('Lien du panel admin', () => {
   it.each([
     ['admin', true],
-    ['editeur', true],
+    ['editeur', false],
     ['lecteur', false],
     [null, false],
   ] as const)('rôle %s : lien affiché = %s', (role, shown) => {

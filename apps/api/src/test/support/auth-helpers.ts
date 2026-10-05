@@ -3,23 +3,16 @@ import { hashPassword } from 'better-auth/crypto';
 import * as schema from '@/db/schema';
 import type { testApp } from './helpers';
 
-// Se connecter dans un test, quelle que soit la méthode de connexion du projet : les tests du
-// panel admin et des autres modules passent par ici.
-
 type App = Awaited<ReturnType<typeof testApp>>;
 type Role = 'admin' | 'editeur' | 'lecteur';
 
 export const ORIGIN = 'http://localhost:5173';
-/** Manifestement factice : jamais un vrai mot de passe dans le dépôt, même pour un test. */
 export const TEST_PASSWORD = 'phrase-factice-pour-les-tests';
 let counter = 0;
-// scrypt est lent à dessein : une empreinte calculée une fois suffit pour tous les comptes de test.
 let testHash: Promise<string> | null = null;
 
-/** Ce que contient le lien envoyé à un compte invité. */
 export const INVITATION_LINK: string | null = '/reset-password/';
 
-/** Les cookies posés par une réponse, prêts à renvoyer (`nom=valeur; nom=valeur`). */
 export function cookiesOf(response: Response, previous = ''): string {
   const jar = new Map(
     previous
@@ -66,7 +59,6 @@ function base32(input: string): Uint8Array {
   return new Uint8Array(out);
 }
 
-/** Le code à six chiffres qu'afficherait l'application d'authentification (RFC 6238). */
 export function totpCode(totpURI: string, at = Date.now()): string {
   const secret = new URL(totpURI).searchParams.get('secret') ?? '';
   const counterBytes = Buffer.alloc(8);
@@ -76,7 +68,6 @@ export function totpCode(totpURI: string, at = Date.now()): string {
   return String((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0');
 }
 
-/** Un compte invité qui a déjà choisi son mot de passe. */
 export async function createAccount(t: App, role: Role, email: string): Promise<string> {
   const [created] = await t.deps.db
     .insert(schema.user)
@@ -93,7 +84,6 @@ export async function createAccount(t: App, role: Role, email: string): Promise<
   return userId;
 }
 
-/** Active la double authentification d'un compte connecté ; renvoie le nouveau cookie et l'URI TOTP. */
 export async function enableTwoFactor(
   t: App,
   cookie: string,
@@ -109,10 +99,6 @@ export async function enableTwoFactor(
   return { cookie: cookiesOf(verified, cookie), totpURI, backupCodes };
 }
 
-/**
- * Crée un compte du rôle donné et renvoie son cookie de session. `strong` : le compte a aussi
- * activé la double authentification, le facteur fort exigé des admins.
- */
 export async function signInAs(
   t: App,
   role: Role,
@@ -127,7 +113,6 @@ export async function signInAs(
   return options.strong ? (await enableTwoFactor(t, cookie)).cookie : cookie;
 }
 
-/** Le dernier lien envoyé à cette adresse (invitation ou accès), null si rien n'est parti. */
 export function lastInvitationLink(t: App, email: string): string | null {
   return t.deps.mailer.lastLink(email);
 }

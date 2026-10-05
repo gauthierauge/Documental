@@ -3,16 +3,12 @@ import { navigate } from '@/router';
 import { NavList } from './NavList';
 import type { NavItem } from './navigation';
 
-// Rechercher une page du menu par son nom : les résultats s'affichent sous le champ, Entrée
-// ouvre le premier, Échap vide le champ.
-
 const plain = (text: string) =>
   text
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase();
 
-/** Les pages dont le nom contient chaque mot tapé, sans tenir compte des accents ni des majuscules. */
 export function findPages(pages: NavItem[], query: string): NavItem[] {
   const words = plain(query).split(/\s+/).filter(Boolean);
   if (!words.length) return [];

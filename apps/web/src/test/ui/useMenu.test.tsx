@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { navigate } from '@/router';
 import { MenuButton } from '@/ui/MenuButton';

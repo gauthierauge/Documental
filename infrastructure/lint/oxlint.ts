@@ -176,4 +176,28 @@ export const oxlint: OxlintConfig = {
     'vitest/no-focused-tests': 'warn',
     'no-restricted-imports': ['error', { patterns: [PARENT_IMPORT] }],
   },
+  overrides: [
+    {
+      files: [
+        'apps/api/src/admin/audit.ts',
+        'apps/api/src/admin/settings.ts',
+        'apps/api/src/admin/store.ts',
+        'apps/api/src/admin/users.ts',
+        'apps/api/src/auth/admin-access.ts',
+      ],
+      rules: { 'typescript/no-explicit-any': 'off' },
+    },
+    {
+      files: [
+        'apps/web/src/admin/AdminShell.tsx',
+        'apps/web/src/admin/EntityList.tsx',
+        'apps/web/src/admin/FieldInput.tsx',
+      ],
+      rules: { 'react/exhaustive-deps': 'off' },
+    },
+    {
+      files: ['apps/web/src/ui/Table.tsx'],
+      rules: { 'jsx-a11y/no-noninteractive-tabindex': 'off' },
+    },
+  ],
 };

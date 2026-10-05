@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 import './ui.css';
 
-// Une page de l'app : un seul titre de niveau 1, un chapô facultatif, puis le contenu.
-
 export function Page({
   title,
   lede,
@@ -11,7 +9,6 @@ export function Page({
 }: {
   title: ReactNode;
   lede?: ReactNode;
-  /** Colonne étroite, pour un formulaire seul (connexion, mot de passe…). */
   narrow?: boolean;
   children?: ReactNode;
 }) {

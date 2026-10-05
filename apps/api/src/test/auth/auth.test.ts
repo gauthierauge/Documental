@@ -24,7 +24,6 @@ async function invite(t: App, email: string, role = 'lecteur') {
   expect(asked.status).toBe(200);
 }
 
-/** Suit le lien reçu par e-mail jusqu'à l'écran de choix du mot de passe : renvoie le jeton. */
 async function tokenFromMail(t: App, email: string): Promise<string> {
   const link = new URL(t.deps.mailer.lastLink(email) ?? '');
   const opened = await t.app.request(link.pathname + link.search, { headers: { origin: ORIGIN } });
@@ -50,7 +49,6 @@ describe('Connexion par mot de passe', () => {
     const mail = t.deps.mailer.sent.at(-1);
     expect(mail?.subject).toContain('Votre accès');
     expect(mail?.text).toContain('72 heures');
-    // Le lien d'invitation dure bien 72 heures, pas l'heure d'un lien de réinitialisation.
     const links = await t.deps.db
       .select({ expiresAt: schema.verification.expiresAt })
       .from(schema.verification);
@@ -60,7 +58,6 @@ describe('Connexion par mot de passe', () => {
     expect((await post(t, '/reset-password', { token, newPassword: NEW_PASSWORD })).status).toBe(
       200,
     );
-    // Le lien ne sert qu'une fois.
     expect((await post(t, '/reset-password', { token, newPassword: NEW_PASSWORD })).status).toBe(
       400,
     );
@@ -120,13 +117,11 @@ describe('Connexion par mot de passe', () => {
         ).status,
       ).toBe(401);
     }
-    // Même le bon mot de passe attend la fin de la fenêtre.
     const blocked = await post(t, '/sign-in/email', {
       email: 'cible@exemple.fr',
       password: TEST_PASSWORD,
     });
     expect(blocked.status).toBe(429);
-    // Le refus de Better Auth, au format du projet, avec son délai.
     expect(Number(blocked.headers.get('retry-after'))).toBeGreaterThan(0);
     expect(await blocked.text()).toMatch(
       /Connexion : trop de tentatives, réessayez dans \d+ minutes?\./,
@@ -188,7 +183,6 @@ describe('Double authentification', () => {
     expect(signedIn.status).toBe(200);
     expect(await signedIn.json()).toMatchObject({ twoFactorRedirect: true });
     const pending = cookiesOf(signedIn);
-    // Le mot de passe seul n'ouvre pas de session.
     expect((await me(t, pending)).status).toBe(401);
 
     expect((await post(t, '/two-factor/verify-totp', { code: '000000' }, pending)).status).toBe(
@@ -223,10 +217,6 @@ describe('Double authentification', () => {
     expect(await response.json()).toMatchObject({ code: 'DEUXFA_OBLIGATOIRE' });
   });
 });
-
-// Better Auth compte les tentatives par adresse IP : celle que le serveur a résolue selon
-// TRUST_PROXY, jamais un en-tête choisi par le client. Une adresse e-mail par adresse IP : seul
-// le compteur par adresse IP est en jeu.
 
 function signIn(t: App, forwardedFor: string) {
   return t.app.request('/api/auth/sign-in/email', {

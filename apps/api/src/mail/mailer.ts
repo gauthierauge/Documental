@@ -1,18 +1,12 @@
 import type { Env } from '@/env';
 
-// Envoi d'e-mails transactionnels par l'API HTTP d'un service managé : jamais de serveur SMTP
-// maison. En développement, les e-mails s'affichent dans le terminal ; dans les tests, ils sont
-// gardés en mémoire pour être vérifiés.
-
 export interface Mail {
   to: string;
   subject: string;
   text: string;
-  /** L'adresse à qui « Répondre » écrit (l'expéditeur d'un formulaire de contact). */
   replyTo?: string;
 }
 
-/** Ce que le service renvoie d'un envoi : l'identifiant du message, s'il en donne un. */
 export interface SentMail {
   id: string | null;
 }
@@ -29,7 +23,6 @@ export class MemoryMailer implements Mailer {
     return { id: `memoire-${this.sent.length}` };
   }
 
-  /** Le dernier lien envoyé à une adresse : pratique pour tester un lien de connexion. */
   lastLink(to: string): string | null {
     const mail = this.sent.findLast((m) => m.to === to);
     return mail?.text.match(/https?:\/\/\S+/)?.[0] ?? null;
@@ -60,8 +53,6 @@ class HttpMailer implements Mailer {
 
   async send(mail: Mail): Promise<SentMail> {
     const sender = parseFrom(this.from);
-    // En-têtes typés une fois : chaque fournisseur a les siens (tsconfig avec ou sans
-    // exactOptionalPropertyTypes, comme celui d'une app Next).
     const request: { url: string; headers: Record<string, string>; body: object } =
       this.provider === 'brevo'
         ? {
@@ -92,10 +83,8 @@ class HttpMailer implements Mailer {
       body: JSON.stringify(request.body),
     });
     if (!response.ok) {
-      // Le corps de la réponse peut contenir l'adresse : on ne journalise que le statut.
       throw new Error(`Envoi d'e-mail refusé par ${this.provider} (${response.status})`);
     }
-    // Brevo répond { messageId }, Resend { id } : de quoi retrouver le message chez eux.
     const sent = (await response.json().catch(() => ({}))) as { messageId?: unknown; id?: unknown };
     const id = this.provider === 'brevo' ? sent.messageId : sent.id;
     return { id: typeof id === 'string' ? id : null };

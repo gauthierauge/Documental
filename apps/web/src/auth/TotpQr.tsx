@@ -1,10 +1,6 @@
 import { generate } from 'lean-qr';
 import { toSvgPath } from 'lean-qr/extras/svg';
 
-/**
- * Le QR code de l'URI otpauth://, dessiné dans le navigateur : le secret ne part chez aucun
- * service. Le secret est aussi affiché en clair, pour une saisie à la main.
- */
 export function TotpQr({ uri }: { uri: string }) {
   const code = generate(uri);
   const secret = new URL(uri).searchParams.get('secret') ?? '';

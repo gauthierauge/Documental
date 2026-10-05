@@ -10,8 +10,7 @@ type Step = { kind: 'identifiants' } | { kind: 'code'; backup: boolean };
 
 function nextPath(): string {
   const next = new URLSearchParams(window.location.search).get('suite');
-  // Seulement un chemin interne : pas de redirection vers un autre site.
-  return next?.startsWith('/') && !next.startsWith('//') ? next : '/compte';
+  return next?.startsWith('/') && !next.startsWith('//') ? next : '/documents';
 }
 
 export function Login() {

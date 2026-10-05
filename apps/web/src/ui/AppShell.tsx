@@ -1,6 +1,5 @@
 import { type ReactNode, useState } from 'react';
 import { Link } from '@/router';
-import { AppearanceSwitch } from './AppearanceSwitch';
 import { MenuButton } from './MenuButton';
 import { NavList } from './NavList';
 import type { NavItem } from './navigation';
@@ -8,10 +7,6 @@ import { PageSearch } from './PageSearch';
 import { useMenu } from './useMenu';
 import './shell.css';
 import './app-shell.css';
-
-// Mise en page « Barre latérale + barre du haut » : les pages dans une colonne à gauche,
-// repliable ; en haut du contenu, la recherche de page et le compte. Sur téléphone, la colonne
-// devient une barre (nom, bouton Menu) au-dessus de la barre du haut.
 
 export function AppShell({
   title,
@@ -21,7 +16,6 @@ export function AppShell({
 }: {
   title: string;
   pages: NavItem[];
-  /** Les liens du compte (connexion, compte, admin), dans la barre du haut. */
   account?: ReactNode;
   children: ReactNode;
 }) {
@@ -69,7 +63,6 @@ export function AppShell({
           <span>
             © {new Date().getFullYear()} {title}
           </span>
-          <AppearanceSwitch />
         </footer>
       </div>
     </div>

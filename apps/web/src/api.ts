@@ -1,11 +1,9 @@
 import { tooManyMessage } from './too-many';
 
-// Un seul point d'entrée pour parler à l'API : les erreurs y sont traduites une fois pour toutes.
 export class ApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
-    /** Le corps de la réponse : messages par champ, code d'erreur… */
     readonly body: { error?: string; code?: string; fields?: Record<string, string> } = {},
   ) {
     super(message);

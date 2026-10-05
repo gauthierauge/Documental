@@ -7,9 +7,6 @@ import {
 } from 'react';
 import './ui.css';
 
-// Un champ de formulaire : libellé visible, aide et erreur reliées au champ pour les lecteurs
-// d'écran. Le champ lui-même est passé en fonction, pour garder n'importe quel contrôle.
-
 export interface ControlProps {
   id: string;
   'aria-describedby'?: string;
@@ -67,7 +64,6 @@ export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLText
   return <textarea className={withClass('ui-champ ui-champ-long', className)} {...rest} />;
 }
 
-/** Une case à cocher avec son libellé cliquable, cible de 44 px. */
 export function Checkbox({
   label,
   className,

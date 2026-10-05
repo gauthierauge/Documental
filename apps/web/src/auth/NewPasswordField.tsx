@@ -2,10 +2,6 @@ import { useState } from 'react';
 import { Checkbox, Field, Input } from '@/ui/Field';
 import { PASSWORD_MAX, passwordProblem } from './client';
 
-/**
- * Champ de nouveau mot de passe : la règle s'affiche pendant la saisie (la même que l'API), le
- * mot de passe peut s'afficher en clair, et le collage depuis un gestionnaire reste permis.
- */
 export function NewPasswordField({
   value,
   onChange,

@@ -27,9 +27,6 @@ import { ContentStore } from './store';
 import { Accounts } from './users';
 import { entitySchemas, fieldErrors, settingsSchema } from './validation';
 
-// Le panel admin côté API. Tout est piloté par admin.config.ts ; chaque route vérifie le rôle
-// et les actions permises, et chaque modification est inscrite au journal.
-
 function currentUser(c: { get(key: 'user'): SessionUser | null }): SessionUser {
   const user = c.get('user');
   if (!user) throw new HTTPException(401, { message: 'Connexion requise' });
@@ -78,10 +75,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
   const settings = new SettingsStore(deps.db, adminConfig.settings);
   const accounts = new Accounts(deps.db);
 
-  /**
-   * Les comptes et les réglages touchent à toute l'app : un admin doit avoir le facteur fort de la
-   * méthode de connexion (auth/admin-access.ts) pour y accéder.
-   */
   const strongAdmin = createMiddleware(async (c, next) => {
     const user = currentUser(c);
     if (user.role !== 'admin') throw new HTTPException(403, { message: 'Réservé aux admins' });
@@ -92,9 +85,8 @@ export function adminRoutes(deps: Deps, auth: Auth) {
   });
 
   const r = new Hono();
-  r.use('*', requireUser('admin', 'editeur', 'lecteur'));
+  r.use('*', requireUser('admin'));
 
-  // ---- Description du panel, filtrée selon le rôle.
   r.get('/meta', async (c) => {
     const user = currentUser(c);
     return c.json({
@@ -115,7 +107,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
     });
   });
 
-  // ---- Accueil : de quoi voir d'un coup d'œil ce qui attend.
   r.get('/accueil', async (c) => {
     const cards = [];
     for (const entity of adminConfig.entities) {
@@ -134,7 +125,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
     return c.json({ cards, journal });
   });
 
-  // ---- Contenus.
   r.get('/contenus/:entity', async (c) => {
     const user = currentUser(c);
     const entity = entityOr404(c.req.param('entity'));
@@ -299,7 +289,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
     });
   }
 
-  // ---- Réglages de l'app.
   r.get('/reglages', strongAdmin, async (c) =>
     c.json({ settings: adminConfig.settings, values: await settings.all() }),
   );
@@ -325,7 +314,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
     return c.json({ values: await settings.all() });
   });
 
-  // ---- Comptes.
   if (adminConfig.sections.comptes) {
     r.get('/comptes', strongAdmin, async (c) => c.json({ accounts: await accounts.list() }));
 
@@ -344,7 +332,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
         parsed.data.name || email.split('@')[0] || email,
         role,
       );
-      // Le lien d'invitation dépend de la méthode de connexion ; il se renvoie depuis la liste.
       await sendAccessLink(auth, deps.env, email);
       await audit.record(user, {
         action: 'invitation',
@@ -355,7 +342,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
       return c.json({ id: created.id }, 201);
     });
 
-    // Renvoyer l'accès n'existe que si la méthode de connexion envoie quelque chose.
     if (accessLink.resend) {
       r.post('/comptes/:id/lien', strongAdmin, async (c) => {
         const target = await accounts.get(c.req.param('id'));
@@ -407,11 +393,7 @@ export function adminRoutes(deps: Deps, auth: Auth) {
     });
   }
 
-  // ---- Journal.
   r.get('/journal', async (c) => {
-    const user = currentUser(c);
-    if (user.role === 'lecteur')
-      throw new HTTPException(403, { message: 'Journal réservé aux admins et éditeurs' });
     const page = Number(c.req.query('page') ?? 1) || 1;
     return c.json(await audit.list(page, 50));
   });
@@ -419,7 +401,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
   return r;
 }
 
-/** Les réglages publics (horaires…), lisibles sans connexion par le site ou l'app. */
 export function publicSettingsRoute(deps: Pick<Deps, 'db'>) {
   const settings = new SettingsStore(deps.db, adminConfig.settings);
   const r = new Hono();

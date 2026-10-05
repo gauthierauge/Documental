@@ -2,10 +2,6 @@ import { readFileSync } from 'node:fs';
 import { inject } from 'vitest';
 import { type Database, openDatabase } from '@/db/client';
 
-// Une base en mémoire par fichier de test : migrée une fois, partagée par les tests du fichier.
-// Chaque test utilise ses propres données (adresses, noms) pour rester indépendant.
-// Elle part de l'image préparée une fois pour toute la suite (tests/database-setup.ts) : le
-// démarrage de PGlite n'est plus payé par chaque fichier dans le délai de son premier test.
 let database: Promise<Database> | null = null;
 
 async function open(): Promise<Database> {

@@ -1,11 +1,8 @@
 import { type ReactNode, useId } from 'react';
 import './ui.css';
 
-// Une carte : un bloc de contenu sur une surface, avec un titre et des actions facultatifs.
-
 interface CardProps {
   title?: ReactNode;
-  /** Niveau du titre dans la page : 2 sous le titre de page, 3 dans une section. */
   level?: 2 | 3;
   actions?: ReactNode;
   className?: string;

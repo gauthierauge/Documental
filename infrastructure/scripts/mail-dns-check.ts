@@ -2,10 +2,6 @@ import { Resolver } from 'node:dns/promises';
 import { readFileSync } from 'node:fs';
 import { parseEnvText } from './env-file';
 
-// `make mail-dns-check` : les enregistrements DNS du domaine d'envoi (celui de MAIL_FROM), lus
-// tels qu'ils sont publiés et comparés à ce que le fournisseur demande (docs/emails-dns.md). Rien
-// n'est écrit nulle part : le script lit le DNS par le résolveur du système et dit ce qui manque.
-
 export type Provider = 'brevo' | 'resend';
 export type FindingStatus = 'ok' | 'manque' | 'a-verifier';
 
@@ -22,7 +18,6 @@ export interface DnsReader {
   cname(name: string): Promise<string[]>;
 }
 
-/** « Atelier <bonjour@atelier.fr> » ou « bonjour@atelier.fr » → « atelier.fr » ; null sans domaine. */
 export function senderDomain(from: string): string | null {
   const address = /<([^>]+)>/.exec(from)?.[1] ?? from;
   const domain = address.trim().split('@')[1]?.toLowerCase();
@@ -48,7 +43,6 @@ async function dmarc(domain: string, dns: DnsReader, provider: Provider): Promis
   const findings = [
     found('DMARC', host, Boolean(record), 'aucun TXT commençant par v=DMARC1', record),
   ];
-  // Brevo demande que sa propre adresse de rapports figure dans l'enregistrement DMARC.
   if (provider === 'brevo' && record) {
     const rua = 'rua=mailto:rua@dmarc.brevo.com';
     findings.push(
@@ -79,7 +73,6 @@ async function dkimHosts(domain: string, dns: DnsReader, hosts: string[]): Promi
   );
 }
 
-/** Ce que demande le fournisseur, d'après sa documentation (liens dans docs/emails-dns.md). */
 export async function checkMailDns(
   provider: Provider,
   domain: string,
@@ -125,7 +118,6 @@ export function report(findings: Finding[]): string {
 const absent = (error: unknown) =>
   ['ENOTFOUND', 'ENODATA'].includes((error as { code?: string }).code ?? '');
 
-/** Le résolveur DNS du système : une adresse inconnue ou sans enregistrement, c'est une liste vide. */
 export function systemDns(resolver = new Resolver()): DnsReader {
   const read = async <T>(query: () => Promise<T[]>): Promise<T[]> => {
     try {

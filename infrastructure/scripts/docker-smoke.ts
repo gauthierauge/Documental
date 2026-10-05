@@ -1,8 +1,3 @@
-// `make smoke` (bun run docker:smoke), et le job « image » de la CI : la preuve que l'image de
-// production démarre. Construit l'image, lance compose (l'app et sa base) en essai local
-// (LOCAL_TRIAL), attend /api/health (et /api/health/base s'il existe), vérifie que le processus
-// ne tourne pas en root et que le système de fichiers est en lecture seule, puis arrête tout et
-// nettoie, même en cas d'échec. Projet compose et ports à part : `make up` n'est pas touché.
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -12,21 +7,15 @@ import { parseEnvText } from './env-file';
 
 const WAIT_SECONDS = 180;
 
-/** Les variables que compose.yaml exige (`${NOM:?message}`), dans l'ordre, sans doublon. */
 export function requiredVariables(compose: string): string[] {
   const names = [...compose.matchAll(/\$\{([A-Z][A-Z0-9_]*):\?/g)].map((m) => m[1] ?? '');
   return [...new Set(names)];
 }
 
-/** Une valeur fictive, aléatoire et assez longue pour les règles de production. */
 export function placeholder(): string {
   return `essai-${randomBytes(24).toString('base64url')}`;
 }
 
-/**
- * Les valeurs fictives de l'essai : seulement pour les variables exigées et absentes (ni dans
- * l'environnement, ni dans .env). Rien n'est envoyé nulle part : l'image doit juste démarrer.
- */
 export function trialPlaceholders(
   compose: string,
   known: Record<string, string | undefined>,
@@ -36,7 +25,6 @@ export function trialPlaceholders(
   return Object.fromEntries(missing.map((name) => [name, make()]));
 }
 
-/** Le nom du projet compose de l'essai : à part de celui de `make up`. */
 export function smokeProject(dir: string): string {
   const name = basename(dir)
     .toLowerCase()
@@ -49,14 +37,12 @@ export interface Outcome {
   detail: string;
 }
 
-/** /api/health/base : 200, la base répond ; 404, le projet n'en a pas ; le reste est un échec. */
 export function baseHealth(status: number | null): Outcome | null {
   if (status === 200) return { ok: true, detail: '/api/health/base' };
   if (status === 404) return null;
   return { ok: false, detail: `/api/health/base : ${status ?? 'pas de réponse'}` };
 }
 
-/** L'utilisateur du processus : tout sauf root (0). */
 export function userCheck(output: string): Outcome {
   const uid = Number.parseInt(output.trim().split('\n').pop() ?? '', 10);
   if (Number.isNaN(uid)) return { ok: false, detail: `utilisateur illisible (${output.trim()})` };
@@ -64,7 +50,6 @@ export function userCheck(output: string): Outcome {
   return { ok: true, detail: `utilisateur ${uid} (non root)` };
 }
 
-/** Le code d'erreur d'une écriture dans le conteneur : EROFS prouve la lecture seule. */
 export function readOnlyCheck(output: string): Outcome {
   const code = output.trim().split('\n').pop() ?? '';
   if (code === 'EROFS') return { ok: true, detail: 'système de fichiers en lecture seule' };
@@ -74,9 +59,6 @@ export function readOnlyCheck(output: string): Outcome {
     detail: `système de fichiers : écriture refusée pour une autre raison (${code})`,
   };
 }
-
-// -------------------------------------------------------------------------------------------
-// L'exécution, avec Docker
 
 function run(command: string, args: string[], env: NodeJS.ProcessEnv, quiet = false) {
   const result = spawnSync(command, args, {
@@ -107,7 +89,6 @@ async function status(url: string): Promise<number | null> {
   }
 }
 
-/** /api/health doit répondre 200 : `--wait` a déjà attendu le conteneur, on laisse 30 s de plus. */
 async function waitHealth(url: string): Promise<boolean> {
   for (let i = 0; i < 30; i++) {
     if ((await status(url)) === 200) return true;

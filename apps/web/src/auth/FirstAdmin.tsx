@@ -1,4 +1,3 @@
-/** Le premier compte admin, avec la connexion par mot de passe + double authentification. */
 export function FirstAdmin() {
   return (
     <>

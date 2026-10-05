@@ -12,7 +12,6 @@ import * as schema from './schema';
 export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 export const dialect = 'pg' as const;
 
-/** L'URL de la base d'après l'environnement, avec la valeur de développement par défaut. */
 export function databaseUrl(env: { DATABASE_URL?: string | undefined }): string {
   return env.DATABASE_URL ?? 'pglite://./data/pglite';
 }
@@ -32,14 +31,9 @@ export interface Database {
 const migrationsFolder = './drizzle';
 
 export interface OpenOptions {
-  /** PGlite seulement : une base déjà initialisée et migrée (`dumpDataDir`), chargée telle quelle. */
   pgliteImage?: Blob;
 }
 
-/**
- * Ouvre la base. `postgres://…` en production ; `pglite://memory` pour les tests ;
- * `pglite://./dossier` en développement : un vrai PostgreSQL, sans rien installer.
- */
 export async function openDatabase(url: string, options: OpenOptions = {}): Promise<Database> {
   if (url.startsWith('pglite://')) {
     const path = url.slice('pglite://'.length);
@@ -69,7 +63,6 @@ export async function openDatabase(url: string, options: OpenOptions = {}): Prom
   };
 }
 
-/** Une vraie requête, pour la route de santé de la base. */
 export async function ping(db: Db): Promise<void> {
   await db.execute(sql`select 1`);
 }

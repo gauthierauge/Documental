@@ -5,13 +5,8 @@ import * as schema from '@/db/schema';
 import { readEnv } from '@/env';
 import { passwordProblem } from '@documental/contracts/password-policy';
 
-// Le compte d'essai des tests qui passent par l'API réelle : les parcours de l'app mobile liée et
-// ses tests d'intégration. Un compte « lecteur » avec un mot de passe, sans invitation par e-mail.
-// Jamais en production. Usage : KIT_ESSAI_EMAIL=… KIT_ESSAI_MOT_DE_PASSE=… bun run compte:essai
-
 export const TEST_ACCOUNT_ROLE = 'lecteur';
 
-/** Crée le compte, ou remet son mot de passe s'il existe déjà : relancer ne crée aucun doublon. */
 export async function ensureTestAccount(db: Db, email: string, password: string): Promise<string> {
   const [existing] = await db
     .select({ id: schema.user.id })

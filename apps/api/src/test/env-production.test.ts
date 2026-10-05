@@ -2,7 +2,6 @@ import { PRODUCTION_ENV } from './support/helpers';
 import { readEnv } from '@/env';
 import { assertProduction, productionProblems } from '@/env-production';
 
-/** Des valeurs de développement ou incomplètes, chacune refusée en production. */
 const REFUSED: [name: string, value: string][] = [
   ['DATABASE_URL', ''],
   ['MAIL_PROVIDER', 'console'],
