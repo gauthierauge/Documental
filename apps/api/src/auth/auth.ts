@@ -120,6 +120,19 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
           if (problem)
             throw new APIError('BAD_REQUEST', { message: problem, code: 'MOT_DE_PASSE_REFUSE' });
         }
+        // Profil : le nom doit être rempli et pas trop long.
+        if (ctx.path === '/update-user') {
+          const body = ctx.body as { name?: unknown } | undefined;
+          if (body?.name !== undefined) {
+            const name = typeof body.name === 'string' ? body.name.trim() : '';
+            if (name === '' || name.length > 100) {
+              throw new APIError('BAD_REQUEST', {
+                message: 'Le nom doit faire entre 1 et 100 caractères.',
+                code: 'NOM_INVALIDE',
+              });
+            }
+          }
+        }
         if (ctx.path === '/two-factor/disable') {
           const session = await getSessionFromCtx(ctx);
           if ((session?.user as { role?: string } | undefined)?.role === 'admin') {
