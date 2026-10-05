@@ -6,6 +6,7 @@ import { type Connection, EditionHub } from '@/edition/hub';
 import { DocumentStore } from '@/documents/store';
 import { EditionStore } from '@/edition/store';
 import { InvitationStore } from '@/invitations/store';
+import { Accounts } from '@/admin/users';
 import { testDatabase } from '@/test/support/database';
 
 let database: Database;
@@ -227,5 +228,23 @@ describe('Curseurs', () => {
       await hub.receive(id, alice.conn, JSON.stringify(cursor));
       expect(alice.messages.at(-1)).toMatchObject({ type: 'erreur', status: 400 });
     }
+  });
+});
+
+describe('Compte bloqué', () => {
+  it('ferme aussitôt ses éditeurs ouverts, et seulement les siens', async () => {
+    const id = await newDocument();
+    const hub = new EditionHub(store, documents, database.listen);
+    const target = await newUser('editeur');
+    const blocked = connection(target);
+    const other = connection(editor);
+    await hub.join(id, blocked.conn, 0);
+    await hub.join(id, other.conn, 0);
+    await new Accounts(database.db).setBlocked(target.id, true);
+    await vi.waitFor(() =>
+      expect(blocked.closed).toEqual([{ code: 4401, reason: 'Compte bloqué' }]),
+    );
+    expect(blocked.messages.at(-1)).toMatchObject({ type: 'erreur', status: 401 });
+    expect(other.closed).toEqual([]);
   });
 });

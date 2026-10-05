@@ -1,4 +1,10 @@
-import { INVITATION_LINK, lastInvitationLink, signInAs } from '@/test/support/auth-helpers';
+import {
+  INVITATION_LINK,
+  lastInvitationLink,
+  post,
+  signInAs,
+  TEST_PASSWORD,
+} from '@/test/support/auth-helpers';
 import { testApp } from '@/test/support/helpers';
 import { invitationProblem, strongFactor } from '@/auth/admin-access';
 import { adminConfig } from '@documental/contracts/admin.config';
@@ -259,6 +265,71 @@ describe('Panel admin', () => {
           .status,
       ).toBe(200);
       expect((await call(t, cookie, `/comptes/${id}`, { method: 'DELETE' })).status).toBe(200);
+    },
+  );
+
+  it.runIf(adminConfig.sections.comptes)(
+    'bloque un compte : sessions fermées, connexion refusée, puis débloque',
+    async () => {
+      const t = await testApp();
+      const admin = await signIn(t, 'admin', true);
+      const email = 'bloque@exemple.fr';
+      const blocked = await signInAs(t, 'editeur', { email });
+      const me = (await (
+        await t.app.request('/api/me', { headers: { cookie: blocked } })
+      ).json()) as { user: { id: string } };
+      const id = me.user.id;
+      const block = (bloque: boolean) =>
+        call(t, admin, `/comptes/${id}/blocage`, { method: 'POST', body: { bloque } });
+
+      expect((await block(true)).status).toBe(200);
+      expect((await t.app.request('/api/me', { headers: { cookie: blocked } })).status).toBe(401);
+      const refused = await post(t, '/sign-in/email', { email, password: TEST_PASSWORD });
+      expect(refused.status).toBe(403);
+      expect(((await refused.json()) as { code: string }).code).toBe('COMPTE_BLOQUE');
+      const list = (await (await call(t, admin, '/comptes')).json()) as {
+        accounts: { id: string; blockedAt: string | null }[];
+      };
+      expect(list.accounts.find((a) => a.id === id)?.blockedAt).not.toBeNull();
+      const journal = JSON.stringify(await (await call(t, admin, '/journal')).json());
+      expect(journal).toContain(`a bloqué ${email}`);
+
+      expect((await block(false)).status).toBe(200);
+      expect((await post(t, '/sign-in/email', { email, password: TEST_PASSWORD })).status).toBe(
+        200,
+      );
+    },
+  );
+
+  it.runIf(adminConfig.sections.comptes)(
+    'ne bloque ni son propre compte ni le dernier admin actif',
+    async () => {
+      const t = await testApp();
+      const admin = await signIn(t, 'admin', true);
+      const me = (await (
+        await t.app.request('/api/me', { headers: { cookie: admin } })
+      ).json()) as { user: { id: string } };
+      const self = await call(t, admin, `/comptes/${me.user.id}/blocage`, {
+        method: 'POST',
+        body: { bloque: true },
+      });
+      expect(self.status).toBe(409);
+      expect(
+        (
+          await call(t, admin, '/comptes/inconnu/blocage', {
+            method: 'POST',
+            body: { bloque: true },
+          })
+        ).status,
+      ).toBe(404);
+      expect(
+        (
+          await call(t, admin, `/comptes/${me.user.id}/blocage`, {
+            method: 'POST',
+            body: { bloque: 'oui' },
+          })
+        ).status,
+      ).toBe(400);
     },
   );
 

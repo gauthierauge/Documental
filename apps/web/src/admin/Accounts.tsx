@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { ROLE_LABEL, type Role } from '@documental/contracts/admin-types';
 import { ApiError, api } from '@/api';
+import { Badge } from '@/ui/Badge';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Field, Input, Select } from '@/ui/Field';
@@ -14,6 +15,7 @@ interface Account {
   name: string;
   role: Role;
   strongFactor: string | null;
+  blockedAt: string | null;
 }
 
 const ROLES: Role[] = ['admin', 'editeur', 'lecteur'];
@@ -99,6 +101,7 @@ export function Accounts() {
             <th scope="col">Compte</th>
             <th scope="col">Rôle</th>
             <th scope="col">{meta.strongFactor.label}</th>
+            <th scope="col">État</th>
             <th scope="col">
               <span className="sr-only">Actions</span>
             </th>
@@ -136,6 +139,13 @@ export function Accounts() {
                 {a.strongFactor ?? <span className="adm-muted">{meta.strongFactor.none}</span>}
               </td>
               <td>
+                {a.blockedAt ? (
+                  <Badge tone="danger">Bloqué</Badge>
+                ) : (
+                  <Badge tone="succes">Actif</Badge>
+                )}
+              </td>
+              <td>
                 <div className="adm-row-actions">
                   {meta.access.resend && (
                     <Button
@@ -148,6 +158,26 @@ export function Accounts() {
                       }
                     >
                       {meta.access.resend}
+                    </Button>
+                  )}
+                  {a.id !== meta.user.id && (
+                    <Button
+                      variant="secondaire"
+                      aria-label={`${a.blockedAt ? 'Débloquer' : 'Bloquer'} ${a.email}`}
+                      onClick={() =>
+                        act(
+                          () =>
+                            api(`/admin/comptes/${a.id}/blocage`, {
+                              method: 'POST',
+                              body: JSON.stringify({ bloque: !a.blockedAt }),
+                            }),
+                          a.blockedAt
+                            ? `${a.email} peut de nouveau se connecter.`
+                            : `${a.email} est bloqué : ses sessions sont fermées.`,
+                        )
+                      }
+                    >
+                      {a.blockedAt ? 'Débloquer' : 'Bloquer'}
                     </Button>
                   )}
                   {a.id !== meta.user.id && (
