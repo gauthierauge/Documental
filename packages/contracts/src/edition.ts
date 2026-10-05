@@ -31,10 +31,22 @@ export interface OperationsSince {
   operations: CommittedOperation[];
 }
 
-export type ClientMessage = { type: 'modification' } & OperationSubmission;
+export interface RemoteCursor {
+  key: string;
+  user: DocumentPerson;
+  start: number;
+  end: number;
+}
+
+export type ClientMessage =
+  | ({ type: 'modification' } & OperationSubmission)
+  | { type: 'curseur'; start: number; end: number };
 
 export type ServerMessage =
   | ({ type: 'operation' } & CommittedOperation)
   | { type: 'pret'; revision: number }
   | { type: 'droits'; canEdit: boolean }
+  | ({ type: 'curseur' } & RemoteCursor)
+  | { type: 'depart'; key: string }
+  | { type: 'arrivee' }
   | { type: 'erreur'; status: number; message: string; id?: string };

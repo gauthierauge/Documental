@@ -1,4 +1,8 @@
-import type { OperationSubmission, ServerMessage } from '@documental/contracts/edition';
+import type {
+  OperationSubmission,
+  RemoteCursor,
+  ServerMessage,
+} from '@documental/contracts/edition';
 import {
   EditionController,
   type EditionEvents,
@@ -182,6 +186,10 @@ class FakeSocket implements SocketLike {
   }
 }
 
+function mods(socket: FakeSocket | undefined) {
+  return (socket?.sent ?? []).filter((m) => m.type === 'modification');
+}
+
 function sockets() {
   const opened: FakeSocket[] = [];
   const connect = (path: string) => {
@@ -211,14 +219,14 @@ describe('Édition en direct', () => {
     await controller.start();
     expect(opened[0]?.path).toBe('/api/documents/d1/direct?depuis=4');
     controller.change('Bonjour !', 9);
-    expect(opened[0]?.sent).toEqual([]);
+    expect(mods(opened[0])).toEqual([]);
     opened[0]?.receive({ type: 'pret', revision: 4 });
     await vi.waitFor(() =>
-      expect(opened[0]?.sent).toEqual([
+      expect(mods(opened[0])).toEqual([
         { type: 'modification', id: expect.any(String), base: 4, operation: [7, ' !'] },
       ]),
     );
-    const id = String(opened[0]?.sent[0]?.id);
+    const id = String(mods(opened[0])[0]?.id);
     opened[0]?.receive({ type: 'operation', id, revision: 5, operation: [7, ' !'], author: null });
     await vi.waitFor(() => expect(statuses.at(-1)).toBe('enregistre'));
     expect(controller.pending).toBe(false);
@@ -259,14 +267,14 @@ describe('Édition en direct', () => {
     await controller.start();
     opened[0]?.receive({ type: 'pret', revision: 0 });
     controller.change('a', 1);
-    await vi.waitFor(() => expect(opened[0]?.sent).toHaveLength(1));
+    await vi.waitFor(() => expect(mods(opened[0])).toHaveLength(1));
     opened[0]?.close();
     expect(statuses.at(-1)).toBe('hors-ligne');
     await vi.waitFor(() => expect(opened).toHaveLength(2));
     expect(opened[1]?.path).toBe('/api/documents/d1/direct?depuis=0');
     opened[1]?.receive({ type: 'pret', revision: 0 });
-    await vi.waitFor(() => expect(opened[1]?.sent).toHaveLength(1));
-    expect(opened[1]?.sent[0]).toEqual(opened[0]?.sent[0]);
+    await vi.waitFor(() => expect(mods(opened[1])).toHaveLength(1));
+    expect(mods(opened[1])[0]).toEqual(mods(opened[0])[0]);
     controller.stop();
   });
 
@@ -283,14 +291,14 @@ describe('Édition en direct', () => {
     await controller.start();
     opened[0]?.receive({ type: 'pret', revision: 0 });
     controller.change('a', 1);
-    await vi.waitFor(() => expect(opened[0]?.sent).toHaveLength(1));
-    const id = String(opened[0]?.sent[0]?.id);
+    await vi.waitFor(() => expect(mods(opened[0])).toHaveLength(1));
+    const id = String(mods(opened[0])[0]?.id);
     opened[0]?.close();
     await vi.waitFor(() => expect(opened).toHaveLength(2));
     opened[1]?.receive({ type: 'operation', id, revision: 1, operation: ['a'], author: null });
     opened[1]?.receive({ type: 'pret', revision: 1 });
     await vi.waitFor(() => expect(statuses.at(-1)).toBe('enregistre'));
-    expect(opened[1]?.sent).toEqual([]);
+    expect(mods(opened[1])).toEqual([]);
     controller.stop();
   });
 
@@ -317,5 +325,98 @@ describe('Édition en direct', () => {
     opened[1]?.receive({ type: 'erreur', status: 403, message: 'Lecture seule' });
     expect(statuses.at(-1)).toBe('erreur');
     expect(opened[1]?.closed).toBe(true);
+  });
+});
+
+describe('Curseurs des autres', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function live(text: string) {
+    contentOnly(text, 1);
+    const { opened, connect } = sockets();
+    const seen: RemoteCursor[][] = [];
+    const { events } = recorder();
+    const controller = new EditionController(
+      'd1',
+      'cle',
+      { ...events, cursors: (list) => seen.push(list) },
+      { delayMs: 0, cursorDelayMs: 0, connect, storage: memoryStorage() },
+    );
+    await controller.start();
+    opened[0]?.receive({ type: 'pret', revision: 1 });
+    return { controller, socket: opened[0] as FakeSocket, seen };
+  }
+
+  const bob = { id: 'u2', name: 'Bob' };
+
+  it('envoie ma position une fois prêt, puis quand elle change', async () => {
+    const { controller, socket } = await live('Bonjour');
+    expect(socket.sent).toEqual([{ type: 'curseur', start: 0, end: 0 }]);
+    controller.moveCursor(7, 3);
+    await vi.waitFor(() =>
+      expect(socket.sent.at(-1)).toEqual({ type: 'curseur', start: 3, end: 7 }),
+    );
+    controller.stop();
+  });
+
+  it('renvoie ma position quand quelqu’un arrive', async () => {
+    const { controller, socket } = await live('Bonjour');
+    socket.receive({ type: 'arrivee' });
+    expect(socket.sent.filter((m) => m.type === 'curseur')).toHaveLength(2);
+    controller.stop();
+  });
+
+  it('décale le curseur des autres quand le texte change avant lui', async () => {
+    const { controller, socket, seen } = await live('lundi');
+    socket.receive({ type: 'curseur', key: 'k-bob', user: bob, start: 5, end: 5 });
+    expect(seen.at(-1)).toEqual([{ key: 'k-bob', user: bob, start: 5, end: 5 }]);
+    controller.change('Le lundi', 3);
+    expect(seen.at(-1)?.[0]?.start).toBe(8);
+    socket.receive({
+      type: 'operation',
+      id: 'autre-0001',
+      revision: 2,
+      operation: ['Hé ', 5],
+      author: bob,
+    });
+    expect(seen.at(-1)?.[0]?.start).toBe(11);
+    controller.stop();
+  });
+
+  it('oublie un curseur au départ de la personne ou à la coupure', async () => {
+    const { controller, socket, seen } = await live('abc');
+    socket.receive({ type: 'curseur', key: 'k-bob', user: bob, start: 1, end: 1 });
+    socket.receive({ type: 'depart', key: 'k-bob' });
+    expect(seen.at(-1)).toEqual([]);
+    socket.receive({ type: 'curseur', key: 'k-bob', user: bob, start: 9, end: 9 });
+    expect(seen.at(-1)?.[0]?.start).toBe(3);
+    socket.close();
+    expect(seen.at(-1)).toEqual([]);
+    controller.stop();
+  });
+
+  it('oublie un curseur qui ne donne plus de nouvelles', async () => {
+    vi.useFakeTimers();
+    try {
+      contentOnly('abc', 1);
+      const { opened, connect } = sockets();
+      const seen: RemoteCursor[][] = [];
+      let now = 0;
+      const controller = new EditionController(
+        'd1',
+        'cle',
+        { ...recorder().events, cursors: (list) => seen.push(list) },
+        { connect, storage: memoryStorage(), heartbeatMs: 1_000, now: () => now },
+      );
+      await controller.start();
+      opened[0]?.receive({ type: 'pret', revision: 1 });
+      opened[0]?.receive({ type: 'curseur', key: 'k-bob', user: bob, start: 1, end: 1 });
+      now = 5_000;
+      vi.advanceTimersByTime(1_000);
+      expect(seen.at(-1)).toEqual([]);
+      controller.stop();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -184,3 +184,48 @@ describe('Diffusion des modifications', () => {
     expect(hub.size(id)).toBe(0);
   });
 });
+
+describe('Curseurs', () => {
+  it('montre le curseur de chacun aux autres, sur les deux serveurs, avec le nom de la session', async () => {
+    const id = await newDocument();
+    const serverA = new EditionHub(store, documents, database.listen);
+    const serverB = new EditionHub(store, documents, database.listen);
+    const alice = connection(editor);
+    const bob = connection(reader);
+    await serverA.join(id, alice.conn, 0);
+    await serverB.join(id, bob.conn, 0);
+    await vi.waitFor(() => expect(alice.messages).toContainEqual({ type: 'arrivee' }));
+
+    await serverA.receive(id, alice.conn, JSON.stringify({ type: 'curseur', start: 0, end: 0 }));
+    await vi.waitFor(() =>
+      expect(bob.messages).toContainEqual({
+        type: 'curseur',
+        key: expect.any(String),
+        user: { id: editor.id, name: editor.name },
+        start: 0,
+        end: 0,
+      }),
+    );
+    expect(alice.messages.filter((m) => m.type === 'curseur')).toEqual([]);
+
+    serverA.leave(id, alice.conn);
+    await vi.waitFor(() =>
+      expect(bob.messages.at(-1)).toEqual({ type: 'depart', key: expect.any(String) }),
+    );
+  });
+
+  it('refuse une sélection à l’envers ou hors limites', async () => {
+    const id = await newDocument();
+    const hub = new EditionHub(store, documents, database.listen);
+    const alice = connection(editor);
+    await hub.join(id, alice.conn, 0);
+    for (const cursor of [
+      { type: 'curseur', start: 5, end: 2 },
+      { type: 'curseur', start: -1, end: 0 },
+      { type: 'curseur', start: 0, end: 0, nom: 'Usurpateur' },
+    ]) {
+      await hub.receive(id, alice.conn, JSON.stringify(cursor));
+      expect(alice.messages.at(-1)).toMatchObject({ type: 'erreur', status: 400 });
+    }
+  });
+});

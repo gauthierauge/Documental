@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ServerMessage } from '@documental/contracts/edition';
+import { DOCUMENT_CONTENT_MAX, type ServerMessage } from '@documental/contracts/edition';
 import { isValidOperation, type TextOperation } from '@documental/contracts/text-operation';
 import type { SessionUser } from '@/auth/middleware';
 import type { Listen } from '@/db/client';
@@ -15,7 +15,26 @@ export const submissionSchema = z
   })
   .strict();
 
-const clientMessage = submissionSchema.extend({ type: z.literal('modification') }).strict();
+const position = z.number().int().min(0).max(DOCUMENT_CONTENT_MAX);
+
+const clientMessage = z.discriminatedUnion('type', [
+  submissionSchema.extend({ type: z.literal('modification') }).strict(),
+  z
+    .object({ type: z.literal('curseur'), start: position, end: position })
+    .strict()
+    .refine((c) => c.start <= c.end, 'Sélection invalide'),
+]);
+
+export const CURSOR_CHANNEL = 'documental_curseurs';
+
+const cursorSignal = z.object({
+  d: z.string(),
+  k: z.string(),
+  x: z.enum(['curseur', 'depart', 'arrivee']),
+  u: z.object({ id: z.string(), name: z.string() }).optional(),
+  s: z.number().optional(),
+  e: z.number().optional(),
+});
 
 export interface Connection {
   readonly user: SessionUser;
@@ -24,6 +43,7 @@ export interface Connection {
 }
 
 interface Member {
+  key: string;
   connection: Connection;
   revision: number;
   ready: boolean;
@@ -60,24 +80,30 @@ export class EditionHub {
     this.listening ??= Promise.all([
       this.listen(EDITION_CHANNEL, (id) => this.changed(id)),
       this.listen(ACCESS_CHANNEL, (id) => this.rightsChanged(id)),
+      this.listen(CURSOR_CHANNEL, (payload) => this.cursorMoved(payload)),
     ]);
     await this.listening;
     const room = this.rooms.get(documentId) ?? { members: new Map(), queue: Promise.resolve() };
     this.rooms.set(documentId, room);
+    const key = crypto.randomUUID();
     room.members.set(connection, {
+      key,
       connection,
       revision: since,
       ready: false,
       window: { start: this.now(), count: 0 },
     });
     await this.enqueue(documentId, room);
+    await this.signal({ d: documentId, k: key, x: 'arrivee' });
   }
 
   leave(documentId: string, connection: Connection): void {
     const room = this.rooms.get(documentId);
-    if (!room) return;
+    const member = room?.members.get(connection);
+    if (!room || !member) return;
     room.members.delete(connection);
     if (room.members.size === 0) this.rooms.delete(documentId);
+    void this.signal({ d: documentId, k: member.key, x: 'depart' }).catch(() => undefined);
   }
 
   size(documentId: string): number {
@@ -98,6 +124,18 @@ export class EditionHub {
       connection.send({ type: 'erreur', status: 400, message: 'Message invalide' });
       return;
     }
+    if (parsed.type === 'curseur') {
+      const { id, name } = connection.user;
+      await this.signal({
+        d: documentId,
+        k: member.key,
+        x: 'curseur',
+        u: { id, name },
+        s: parsed.start,
+        e: parsed.end,
+      });
+      return;
+    }
     try {
       await this.store.submit(
         documentId,
@@ -112,6 +150,37 @@ export class EditionHub {
         message: error.message,
         id: parsed.id,
       });
+    }
+  }
+
+  private signal(payload: z.infer<typeof cursorSignal>): Promise<void> {
+    return this.store.notify(CURSOR_CHANNEL, JSON.stringify(payload));
+  }
+
+  private cursorMoved(payload: string): void {
+    let signal: z.infer<typeof cursorSignal>;
+    try {
+      signal = cursorSignal.parse(JSON.parse(payload));
+    } catch {
+      return;
+    }
+    const room = this.rooms.get(signal.d);
+    if (!room) return;
+    for (const member of room.members.values()) {
+      if (member.key === signal.k || !member.ready) continue;
+      if (signal.x === 'depart') {
+        member.connection.send({ type: 'depart', key: signal.k });
+      } else if (signal.x === 'arrivee') {
+        member.connection.send({ type: 'arrivee' });
+      } else if (signal.u && signal.s !== undefined && signal.e !== undefined) {
+        member.connection.send({
+          type: 'curseur',
+          key: signal.k,
+          user: signal.u,
+          start: signal.s,
+          end: signal.e,
+        });
+      }
     }
   }
 

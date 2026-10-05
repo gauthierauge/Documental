@@ -49,3 +49,52 @@
 .ed-texte:disabled {
   opacity: 0.6;
 }
+
+.ed-zone {
+  position: relative;
+}
+
+.ed-curseurs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ed-curseur {
+  position: absolute;
+  width: 2px;
+  margin-left: -1px;
+}
+
+.ed-curseur-nom {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 0 var(--espace-1);
+  border-radius: var(--rayon-petit);
+  color: #fff;
+  font: var(--typo-legende);
+  white-space: nowrap;
+}
+
+.ed-curseur-bas .ed-curseur-nom {
+  top: 100%;
+  bottom: auto;
+}
+
+.ed-presents {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2);
+  margin: 0;
+}
+
+.ed-present {
+  padding: 0 var(--espace-2);
+  border-radius: var(--rayon-rond);
+  background: var(--couleur-accent-doux);
+  color: var(--couleur-accent-sur-doux);
+  font: var(--typo-petit);
+}

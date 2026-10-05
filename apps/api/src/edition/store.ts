@@ -84,6 +84,10 @@ export class EditionStore {
     return row ?? null;
   }
 
+  async notify(channel: string, payload: string): Promise<void> {
+    await this.db.execute(sql`select pg_notify(${channel}, ${payload})`);
+  }
+
   async since(documentId: string, revision: number): Promise<CommittedOperation[]> {
     return (await operationsBetween(this.db, documentId, revision)).map(toCommitted);
   }
