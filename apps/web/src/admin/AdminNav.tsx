@@ -3,5 +3,5 @@ import { NavLink } from '@/ui/NavLink';
 
 export function AdminNav() {
   const { user } = useCurrentUser();
-  return user && user.role !== 'lecteur' ? <NavLink href="/admin">Admin</NavLink> : null;
+  return user?.role === 'admin' ? <NavLink href="/admin">Admin</NavLink> : null;
 }

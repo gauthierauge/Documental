@@ -85,7 +85,7 @@ export function adminRoutes(deps: Deps, auth: Auth) {
   });
 
   const r = new Hono();
-  r.use('*', requireUser('admin', 'editeur', 'lecteur'));
+  r.use('*', requireUser('admin'));
 
   r.get('/meta', async (c) => {
     const user = currentUser(c);
@@ -394,9 +394,6 @@ export function adminRoutes(deps: Deps, auth: Auth) {
   }
 
   r.get('/journal', async (c) => {
-    const user = currentUser(c);
-    if (user.role === 'lecteur')
-      throw new HTTPException(403, { message: 'Journal réservé aux admins et éditeurs' });
     const page = Number(c.req.query('page') ?? 1) || 1;
     return c.json(await audit.list(page, 50));
   });

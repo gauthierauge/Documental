@@ -2,11 +2,7 @@ import { INVITATION_LINK, lastInvitationLink, signInAs } from '@/test/support/au
 import { testApp } from '@/test/support/helpers';
 import { invitationProblem, strongFactor } from '@/auth/admin-access';
 import { adminConfig } from '@documental/contracts/admin.config';
-import {
-  allowedActions,
-  type EntityConfig,
-  type FieldConfig,
-} from '@documental/contracts/admin-types';
+import { type EntityConfig, type FieldConfig } from '@documental/contracts/admin-types';
 
 const ORIGIN = 'http://localhost:5173';
 type App = Awaited<ReturnType<typeof testApp>>;
@@ -81,17 +77,17 @@ describe('Panel admin', () => {
     expect((await t.app.request('/api/admin/meta')).status).toBe(401);
   });
 
-  it('décrit le panel selon le rôle', async () => {
+  it('réserve le panel aux admins', async () => {
     const t = await testApp();
-    const cookie = await signIn(t, 'lecteur');
-    const meta = (await (await call(t, cookie, '/meta')).json()) as {
-      entities: { key: string; allowed: string[] }[];
-    };
-    for (const entity of adminConfig.entities) {
-      const found = meta.entities.find((e) => e.key === entity.key);
-      expect(found?.allowed).toEqual(allowedActions('lecteur', entity));
-      expect(found?.allowed).not.toContain('creer');
+    for (const role of ['editeur', 'lecteur'] as const) {
+      const cookie = await signIn(t, role);
+      for (const path of ['/meta', '/accueil', '/journal', '/comptes']) {
+        expect((await call(t, cookie, path)).status).toBe(403);
+      }
     }
+    const admin = await signIn(t, 'admin', true);
+    expect((await call(t, admin, '/meta')).status).toBe(200);
+    expect((await call(t, admin, '/journal')).status).toBe(200);
   });
 
   for (const entity of adminConfig.entities) {

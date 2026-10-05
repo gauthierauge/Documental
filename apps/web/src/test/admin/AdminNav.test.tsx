@@ -14,7 +14,7 @@ function as(role: CurrentUser['role'] | null) {
 describe('Lien du panel admin', () => {
   it.each([
     ['admin', true],
-    ['editeur', true],
+    ['editeur', false],
     ['lecteur', false],
     [null, false],
   ] as const)('rôle %s : lien affiché = %s', (role, shown) => {
