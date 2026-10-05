@@ -19,6 +19,7 @@ import { withClientIp } from './http/client-ip';
 import { betterAuthTooMany } from './http/rate-limit';
 import { adminRoutes, publicSettingsRoute } from './admin/routes';
 import { documentRoutes } from '@/documents/routes';
+import { editionRoutes } from '@/edition/routes';
 
 export interface Deps {
   env: Env;
@@ -73,7 +74,7 @@ export function createApp(deps: Deps) {
   );
   app.use('/api/*', requestTimeout(env.REQUEST_TIMEOUT_MS));
   // Les routes dont le corps a une autre taille maximale (préfixe → octets).
-  const bodyLimitsByPath: Record<string, number> = {};
+  const bodyLimitsByPath: Record<string, number> = { '/api/documents/': 2 * 1024 * 1024 };
   app.use('/api/*', bodyLimits(env.BODY_MAX_KB * 1024, bodyLimitsByPath));
 
   if (env.SECURITY_CONTACT) {
@@ -97,6 +98,7 @@ export function createApp(deps: Deps) {
   api.route('/admin', adminRoutes(deps, auth));
   api.route('/reglages/publics', publicSettingsRoute(deps));
   api.route('/documents', documentRoutes(deps));
+  api.route('/documents', editionRoutes(deps));
   // Page « Démarrage » (état des modules) : en développement et en test seulement.
   if (deps.env.NODE_ENV !== 'production') api.route('/demarrage', startupRoutes(deps));
 

@@ -15,6 +15,13 @@
       "when": 1791204405556,
       "tag": "0001_ancient_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791205514807,
+      "tag": "0002_abnormal_stingray",
+      "breakpoints": true
     }
   ]
 }
