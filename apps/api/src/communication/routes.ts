@@ -2,8 +2,11 @@ import { Hono, type MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { Deps } from '@/app';
 import { requireUser, type SessionUser } from '@/auth/middleware';
-import { type CommunicationConnection, CommunicationHub } from '@/communication/hub';
-import { CommunicationStore } from '@/communication/store';
+import { ChatService } from '@/communication/chat/service';
+import { ChatStore } from '@/communication/chat/store';
+import type { CommunicationConnection } from '@/communication/connection';
+import { CommunicationHub } from '@/communication/hub';
+import { VoiceService } from '@/communication/voice/service';
 import { accessTo } from '@/documents/access';
 import { DocumentStore } from '@/documents/store';
 import type { WebRtcConfiguration } from '@documental/contracts/communication';
@@ -15,7 +18,10 @@ function currentUser(c: { get(key: 'user'): SessionUser | null }): SessionUser {
 }
 
 export function communicationRoutes(deps: Deps) {
-  const hub = new CommunicationHub(new CommunicationStore(deps.db), deps.listen);
+  const hub = new CommunicationHub(
+    new ChatService(new ChatStore(deps.db), deps.listen),
+    new VoiceService(),
+  );
   const documents = new DocumentStore(deps.db);
   const app = new Hono();
   const allowedOrigin = new URL(deps.env.APP_URL).origin;

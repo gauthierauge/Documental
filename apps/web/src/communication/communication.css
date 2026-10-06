@@ -6,11 +6,19 @@
   min-height: calc(100dvh - var(--espace-8) * 3);
 }
 
-.com-panneau {
+.com-colonne {
   position: sticky;
   top: calc(var(--espace-8) * 2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
   height: calc(100dvh - var(--espace-8) * 3);
   min-height: calc(var(--espace-8) * 7);
+}
+
+.com-chat {
+  flex: 1;
+  min-height: 0;
 }
 
 .com-espace .ed-editeur,
@@ -23,7 +31,7 @@
   min-height: 0;
 }
 
-.com-panneau > .ui-vide {
+.com-chat > .ui-vide {
   flex: 1;
 }
 
@@ -36,21 +44,14 @@
 }
 
 .com-vocal {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espace-2);
-  padding: var(--espace-3);
-  border: var(--trait-fin) solid var(--couleur-bordure);
-  border-radius: var(--rayon-moyen);
   background: var(--couleur-surface-enfoncee);
 }
 
-.com-vocal[data-connecte] {
+.com-vocal-connecte {
   border-color: var(--couleur-accent);
   background: var(--couleur-accent-doux);
 }
 
-.com-vocal-entete,
 .com-vocal-liste li {
   display: flex;
   align-items: center;
@@ -142,7 +143,7 @@
   height: var(--espace-4);
 }
 
-.com-vocal-connecte {
+.com-vocal-statut {
   margin: 0;
   color: var(--couleur-accent-sur-doux);
   font: var(--typo-petit);
@@ -222,8 +223,13 @@
     grid-template-columns: 1fr;
   }
 
-  .com-panneau {
+  .com-colonne {
     position: static;
+    height: auto;
+  }
+
+  .com-chat {
     height: 70dvh;
+    flex: none;
   }
 }

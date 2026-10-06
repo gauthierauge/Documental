@@ -3,7 +3,7 @@ import type { ChatMessage } from '@documental/contracts/communication';
 import type { Db } from '@/db/client';
 import { documentMessage, user } from '@/db/schema';
 
-export const COMMUNICATION_CHANNEL = 'documental_communication';
+export const CHAT_CHANNEL = 'documental_communication';
 
 const columns = {
   id: documentMessage.id,
@@ -33,7 +33,7 @@ function message(row: MessageRow): ChatMessage {
   };
 }
 
-export class CommunicationStore {
+export class ChatStore {
   constructor(private readonly db: Db) {}
 
   async recent(documentId: string, limit = 50): Promise<ChatMessage[]> {
@@ -63,7 +63,7 @@ export class CommunicationStore {
         .insert(documentMessage)
         .values({ documentId, authorId, clientId, text })
         .onConflictDoNothing();
-      await tx.execute(sql`select pg_notify(${COMMUNICATION_CHANNEL}, ${documentId})`);
+      await tx.execute(sql`select pg_notify(${CHAT_CHANNEL}, ${documentId})`);
     });
   }
 }

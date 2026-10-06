@@ -1,162 +1,11 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { CHAT_MESSAGE_MAX, type VoiceServerSignal } from '@documental/contracts/communication';
+import { useEffect, useRef } from 'react';
+import type { VoiceServerSignal } from '@documental/contracts/communication';
 import type { DocumentPerson } from '@documental/contracts/documents';
+import { ChatPanel } from '@/communication/ChatPanel';
 import { useCommunication } from '@/communication/useCommunication';
 import { useVoiceRoom } from '@/communication/useVoiceRoom';
-import { Badge } from '@/ui/Badge';
-import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
-import { EmptyState } from '@/ui/EmptyState';
-import { Field, Textarea } from '@/ui/Field';
-import { Notice } from '@/ui/Notice';
+import { VoicePanel } from '@/communication/VoicePanel';
 import '@/communication/communication.css';
-
-type IconName = 'casque' | 'micro' | 'micro-coupe' | 'son' | 'son-coupe' | 'sortie';
-
-function Icon({ name }: { name: IconName }) {
-  const paths: Record<IconName, React.ReactNode> = {
-    casque: (
-      <>
-        <path d="M4 13v-2a8 8 0 0 1 16 0v2" />
-        <path d="M4 13a2 2 0 0 1 2-2h1v7H6a2 2 0 0 1-2-2v-3Zm16 0a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2v-3Z" />
-      </>
-    ),
-    micro: (
-      <>
-        <rect x="9" y="3" width="6" height="11" rx="3" />
-        <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" />
-      </>
-    ),
-    'micro-coupe': (
-      <path d="M9 8V6a3 3 0 0 1 5.8-1M15 10v1a3 3 0 0 1-.4 1.5M5 11a7 7 0 0 0 11.8 5.1M19 11a7 7 0 0 1-.4 2.3M12 18v3M9 21h6M3 3l18 18" />
-    ),
-    son: (
-      <>
-        <path d="M5 9v6h4l5 4V5L9 9H5Z" />
-        <path d="M17 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12" />
-      </>
-    ),
-    'son-coupe': <path d="M5 9v6h4l5 4V5L9 9H5ZM18 10l4 4m0-4-4 4" />,
-    sortie: <path d="M10 5H5v14h5M14 8l4 4-4 4m4-4H9" />,
-  };
-  return (
-    <svg className="com-icone" viewBox="0 0 24 24" aria-hidden="true">
-      {paths[name]}
-    </svg>
-  );
-}
-
-function time(value: string): string {
-  return new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(
-    new Date(value),
-  );
-}
-
-function initials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toLocaleUpperCase('fr-FR') ?? '')
-    .join('');
-}
-
-function Participants({ participants }: { participants: DocumentPerson[] }) {
-  return (
-    <div className="com-participants" aria-label="Participants en ligne">
-      <span className="com-section-label">En ligne · {participants.length}</span>
-      <span className="com-aide">
-        {participants.map((person) => person.name).join(', ') || 'Aucun participant.'}
-      </span>
-    </div>
-  );
-}
-
-function VoiceSection({
-  voice,
-  online,
-  userId,
-}: {
-  voice: ReturnType<typeof useVoiceRoom>;
-  online: boolean;
-  userId: string;
-}) {
-  const joined = voice.status === 'dans-vocal';
-  return (
-    <section
-      className="com-vocal"
-      aria-labelledby="vocal-titre"
-      data-connecte={joined || undefined}
-    >
-      <div className="com-vocal-entete">
-        <strong id="vocal-titre" className="com-vocal-titre">
-          <Icon name="casque" />
-          Vocal du document
-        </strong>
-        {joined ? (
-          <Badge tone="succes">Dans le vocal</Badge>
-        ) : (
-          <Button
-            variant="primaire"
-            disabled={!online || voice.status === 'connexion'}
-            onClick={() => void voice.join()}
-          >
-            <Icon name="casque" />
-            {voice.status === 'connexion' ? 'Connexion…' : 'Rejoindre'}
-          </Button>
-        )}
-      </div>
-      {joined && (
-        <p className="com-vocal-connecte" role="status">
-          Vous êtes connecté au vocal.
-        </p>
-      )}
-      {voice.participants.length === 0 ? (
-        <span className="com-aide">Personne dans le vocal.</span>
-      ) : (
-        <div className="com-vocal-participants">
-          <span className="com-section-label">
-            Participants dans le vocal · {voice.participants.length}
-          </span>
-          <ul className="com-vocal-liste">
-            {voice.participants.map((person) => (
-              <li key={person.id} data-moi={person.id === userId || undefined}>
-                <span className="com-avatar" aria-hidden="true">
-                  {initials(person.name)}
-                </span>
-                <span className="com-vocal-nom">
-                  <strong>{person.name}</strong>
-                  {person.id === userId && <small>Vous</small>}
-                </span>
-                <Badge tone={person.muted ? 'neutre' : 'succes'}>
-                  <Icon name={person.muted ? 'micro-coupe' : 'micro'} />
-                  {person.muted ? 'Micro coupé' : 'Micro actif'}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {joined && (
-        <div className="com-vocal-controles">
-          <Button onClick={voice.toggleMute}>
-            <Icon name={voice.muted ? 'micro-coupe' : 'micro'} />
-            {voice.muted ? 'Réactiver le micro' : 'Couper le micro'}
-          </Button>
-          <Button onClick={voice.toggleDeafen}>
-            <Icon name={voice.deafened ? 'son-coupe' : 'son'} />
-            {voice.deafened ? 'Réactiver le son' : 'Couper le son'}
-          </Button>
-          <Button variant="danger" onClick={() => voice.leave()}>
-            <Icon name="sortie" />
-            Quitter le vocal
-          </Button>
-        </div>
-      )}
-      {voice.error && <Notice tone="danger">{voice.error}</Notice>}
-    </section>
-  );
-}
 
 export function CommunicationPanel({
   documentId,
@@ -165,89 +14,19 @@ export function CommunicationPanel({
   documentId: string;
   user: DocumentPerson;
 }) {
-  const [draft, setDraft] = useState('');
-  const list = useRef<HTMLOListElement>(null);
   const signal = useRef<(message: VoiceServerSignal) => void>(() => undefined);
   const communication = useCommunication(documentId, (message) => signal.current(message));
   const voice = useVoiceRoom(user, communication.send);
   signal.current = voice.handle;
 
   useEffect(() => {
-    list.current?.lastElementChild?.scrollIntoView({ block: 'nearest' });
-  }, [communication.messages.length]);
-
-  useEffect(() => {
     if (communication.status === 'hors-ligne' && voice.status === 'dans-vocal') voice.leave(false);
   }, [communication.status, voice]);
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    const text = draft.trim();
-    if (!text) return;
-    if (communication.send({ type: 'message', id: crypto.randomUUID(), text })) setDraft('');
-  }
-
-  const status = {
-    connexion: { text: 'Connexion…', tone: 'attention' as const },
-    'en-ligne': { text: 'En ligne', tone: 'succes' as const },
-    'hors-ligne': { text: 'Hors ligne', tone: 'danger' as const },
-  }[communication.status];
-
   return (
-    <Card
-      title="Discussion"
-      className="com-panneau"
-      actions={<Badge tone={status.tone}>{status.text}</Badge>}
-    >
-      <VoiceSection voice={voice} online={communication.status === 'en-ligne'} userId={user.id} />
-      <Participants participants={communication.participants} />
-
-      {communication.error && <Notice tone="danger">{communication.error}</Notice>}
-
-      {communication.messages.length === 0 ? (
-        <EmptyState title="Aucun message.">Commencez la discussion sur ce document.</EmptyState>
-      ) : (
-        <ol className="com-messages" ref={list} aria-label="Messages de la discussion">
-          {communication.messages.map((message) => (
-            <li
-              key={message.id}
-              className={
-                message.author.id === user.id ? 'com-message com-message-moi' : 'com-message'
-              }
-            >
-              <div className="com-message-meta">
-                <strong>{message.author.id === user.id ? 'Vous' : message.author.name}</strong>
-                <time dateTime={message.sentAt}>{time(message.sentAt)}</time>
-              </div>
-              <p>{message.text}</p>
-            </li>
-          ))}
-        </ol>
-      )}
-
-      <form className="com-formulaire" onSubmit={submit}>
-        <Field label="Message">
-          {(control) => (
-            <Textarea
-              {...control}
-              rows={2}
-              maxLength={CHAT_MESSAGE_MAX}
-              value={draft}
-              disabled={communication.status !== 'en-ligne'}
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                  event.preventDefault();
-                  event.currentTarget.form?.requestSubmit();
-                }
-              }}
-            />
-          )}
-        </Field>
-        <Button variant="primaire" type="submit" disabled={!draft.trim()}>
-          Envoyer
-        </Button>
-      </form>
-    </Card>
+    <aside className="com-colonne" aria-label="Communication du document">
+      <VoicePanel voice={voice} online={communication.status === 'en-ligne'} userId={user.id} />
+      <ChatPanel communication={communication} user={user} />
+    </aside>
   );
 }
