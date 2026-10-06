@@ -40,12 +40,12 @@ export function Attachments({
     if (!chosen || chosen.length === 0) return;
     setBusy(true);
     setError(null);
-    let current = all;
+    const current = [...all];
     try {
       for (const file of chosen) {
         const added = await uploadFile(documentId, file, 'attachment');
-        current = [...current, added];
-        onChange(current);
+        current.push(added);
+        onChange([...current]);
       }
     } catch (caught) {
       setError(uploadFailure(caught));

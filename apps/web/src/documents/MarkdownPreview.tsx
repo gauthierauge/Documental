@@ -1,9 +1,9 @@
 import { Fragment, type ReactNode } from 'react';
-import { type Block, type Inline, parseMarkdown } from '@/documents/markdown';
+import { type Block, type Inline, parseMarkdown } from '@/documents/markdown-parser';
 import '@/documents/documents.css';
 
 function inlines(nodes: Inline[]): ReactNode {
-  return nodes.map((node, index) => <Fragment key={index}>{inline(node)}</Fragment>);
+  return nodes.map((node) => <Fragment key={JSON.stringify(node)}>{inline(node)}</Fragment>);
 }
 
 function inline(node: Inline): ReactNode {
@@ -51,8 +51,8 @@ function block(node: Block): ReactNode {
       const List = node.ordonnee ? 'ol' : 'ul';
       return (
         <List>
-          {node.items.map((item, index) => (
-            <li key={index}>{inlines(item)}</li>
+          {node.items.map((item) => (
+            <li key={JSON.stringify(item)}>{inlines(item)}</li>
           ))}
         </List>
       );
@@ -64,8 +64,8 @@ export function Markdown({ source }: { source: string }) {
   const blocks = parseMarkdown(source);
   return (
     <div className="doc-contenu">
-      {blocks.map((node, index) => (
-        <Fragment key={index}>{block(node)}</Fragment>
+      {blocks.map((node) => (
+        <Fragment key={JSON.stringify(node)}>{block(node)}</Fragment>
       ))}
     </div>
   );

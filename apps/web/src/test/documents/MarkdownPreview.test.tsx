@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { Markdown } from '@/documents/Markdown';
+import { Markdown } from '@/documents/MarkdownPreview';
 
 describe('Rendu du corps d’un document', () => {
   it('rend titres, listes, liens et code', () => {

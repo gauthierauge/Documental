@@ -71,6 +71,17 @@ En développement, les e-mails s'affichent dans le terminal de l'API.
 Premier compte admin : `bun run admin:creer prenom@exemple.fr`. Règles et réglages :
 `docs/connexion.md`.
 
+## Discussion et appels audio
+
+Chaque document textuel possède une discussion persistante et affiche les participants en ligne.
+Le salon vocal du document utilise WebRTC ; le WebSocket Hono transporte seulement la présence,
+les messages et la signalisation. Chacun rejoint ou quitte librement le vocal et ses contrôles
+restent dans la colonne de discussion pour laisser l'éditeur utilisable.
+
+`WEBRTC_STUN_URL` configure la découverte WebRTC. Pour les réseaux qui bloquent le pair-à-pair,
+configurer aussi `WEBRTC_TURN_URL`, `WEBRTC_TURN_USERNAME` et `WEBRTC_TURN_CREDENTIAL` (voir
+`.env.example`). Le microphone est autorisé uniquement pour l'origine de l'application.
+
 ## Panel admin
 
 Sur `/admin`. Décrit dans `packages/contracts/src/admin.config.ts` :

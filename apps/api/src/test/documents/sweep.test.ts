@@ -21,7 +21,7 @@ describe('orphanSweeper', () => {
   });
 
   it('ne lance pas deux balayages en même temps', async () => {
-    let resolve = (_: number) => {};
+    let resolve: (value: number | PromiseLike<number>) => void = () => undefined;
     const collect = vi.fn(() => new Promise<number>((r) => (resolve = r)));
     const sweeper = orphanSweeper(collect, { everyMs: 0 });
 

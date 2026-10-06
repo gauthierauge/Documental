@@ -1,4 +1,4 @@
-import { parseInline, parseMarkdown, safeHref, safeImageSrc } from '@/documents/markdown';
+import { parseInline, parseMarkdown, safeHref, safeImageSrc } from '@/documents/markdown-parser';
 
 function texteDe(blocks: ReturnType<typeof parseMarkdown>): string {
   const inline = (nodes: ReturnType<typeof parseInline>): string =>
@@ -104,7 +104,7 @@ describe('parseMarkdown', () => {
     const [puces, nombres] = parseMarkdown('- un\n- deux\n\n1. premier\n2. second');
     expect(puces).toMatchObject({ type: 'liste', ordonnee: false });
     expect(nombres).toMatchObject({ type: 'liste', ordonnee: true });
-    expect(texteDe([puces!])).toBe('un | deux');
+    expect(puces && texteDe([puces])).toBe('un | deux');
   });
 
   it('garde un bloc de code intact, sans l’analyser', () => {
@@ -120,7 +120,7 @@ describe('parseMarkdown', () => {
     const blocks = parseMarkdown('> une\n> citation\n\n---');
     expect(blocks[0]).toMatchObject({ type: 'citation' });
     expect(blocks[1]).toEqual({ type: 'filet' });
-    expect(texteDe([blocks[0]!])).toBe('une citation');
+    expect(blocks[0] && texteDe([blocks[0]])).toBe('une citation');
   });
 
   it('ne rend une image que depuis un chemin de l’application', () => {

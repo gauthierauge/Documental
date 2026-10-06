@@ -9,7 +9,7 @@ import {
 import { api, ApiError } from '@/api';
 import { Attachments } from '@/documents/Attachments';
 import { DocumentBar } from '@/documents/DocumentBar';
-import { Markdown } from '@/documents/Markdown';
+import { Markdown } from '@/documents/MarkdownPreview';
 import { itemHref, useSignedIn } from '@/documents/shared';
 import { uploadFailure, uploadFile } from '@/documents/upload';
 import { Editor, type EditorState, type Follow, type Insertion } from '@/edition/Editor';
@@ -19,6 +19,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Notice } from '@/ui/Notice';
 import { Page } from '@/ui/Page';
+import { CommunicationPanel } from '@/communication/CommunicationPanel';
 
 export function DocumentPage({ id }: { id: string }) {
   const user = useSignedIn(`/documents/${id}`);
@@ -75,12 +76,12 @@ export function DocumentPage({ id }: { id: string }) {
 
   async function insererImages(images: File[]) {
     setEnvoi(null);
-    let courant = ouvert.files;
+    const courant = [...ouvert.files];
     try {
       for (const image of images) {
         const file = await uploadFile(ouvert.item.id, image, 'inline');
-        courant = [...courant, file];
-        setDetail({ ...ouvert, files: courant });
+        courant.push(file);
+        setDetail({ ...ouvert, files: [...courant] });
         setInsert({ text: `\n${markdownImageRef(file)}\n`, nonce: Date.now() });
       }
     } catch (caught) {
@@ -144,33 +145,36 @@ export function DocumentPage({ id }: { id: string }) {
         }
       />
       {item.kind === 'text' ? (
-        <>
-          <Editor
-            documentId={item.id}
-            userId={user.id}
-            onState={setState}
-            onPeople={setPeople}
-            onText={setTexte}
-            onFiles={(images) => void insererImages(images)}
-            hidden={apercu}
-            follow={follow}
-            insert={insert}
-          />
-          {envoi && <Notice tone="danger">{envoi}</Notice>}
-          {apercu &&
-            (texte.trim() ? (
-              <Markdown source={texte} />
-            ) : (
-              <p className="doc-discret">Ce document est vide.</p>
-            ))}
-          <Attachments
-            documentId={item.id}
-            files={detail.files}
-            canWrite={canWrite}
-            canManage={detail.access.manage}
-            onChange={(files: DocumentFile[]) => setDetail({ ...detail, files })}
-          />
-        </>
+        <div className="com-espace">
+          <div className="com-contenu">
+            <Editor
+              documentId={item.id}
+              userId={user.id}
+              onState={setState}
+              onPeople={setPeople}
+              onText={setTexte}
+              onFiles={(images) => void insererImages(images)}
+              hidden={apercu}
+              follow={follow}
+              insert={insert}
+            />
+            {envoi && <Notice tone="danger">{envoi}</Notice>}
+            {apercu &&
+              (texte.trim() ? (
+                <Markdown source={texte} />
+              ) : (
+                <p className="doc-discret">Ce document est vide.</p>
+              ))}
+            <Attachments
+              documentId={item.id}
+              files={detail.files}
+              canWrite={canWrite}
+              canManage={detail.access.manage}
+              onChange={(files: DocumentFile[]) => setDetail({ ...detail, files })}
+            />
+          </div>
+          <CommunicationPanel documentId={item.id} user={self} />
+        </div>
       ) : (
         <Card>
           <p>L’aperçu de ce fichier arrive bientôt.</p>

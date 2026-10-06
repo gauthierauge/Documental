@@ -230,6 +230,28 @@ export const documentFile = pgTable(
   ],
 );
 
+export const documentMessage = pgTable(
+  'document_message',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    clientId: text('client_id').notNull(),
+    documentId: text('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    authorId: text('author_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    text: text('text').notNull(),
+    sentAt: timestamp('sent_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index('document_message_document_idx').on(t.documentId, t.id),
+    unique('document_message_client_unique').on(t.documentId, t.authorId, t.clientId),
+  ],
+);
+
 export const contentTables: Record<string, never> = {};
 
 export const rateLimit = pgTable('rate_limit', {

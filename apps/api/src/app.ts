@@ -20,6 +20,7 @@ import { betterAuthTooMany } from './http/rate-limit';
 import { adminRoutes, publicSettingsRoute } from './admin/routes';
 import { documentRoutes } from '@/documents/routes';
 import { editionRoutes } from '@/edition/routes';
+import { communicationConfigRoutes, communicationRoutes } from '@/communication/routes';
 import { invitationRoutes } from '@/invitations/routes';
 
 export interface Deps {
@@ -96,6 +97,8 @@ export function createApp(deps: Deps) {
   api.route('/reglages/publics', publicSettingsRoute(deps));
   api.route('/documents', documentRoutes(deps));
   api.route('/documents', editionRoutes(deps));
+  api.route('/documents', communicationRoutes(deps));
+  api.route('/communication', communicationConfigRoutes(deps));
   api.route('/documents', invitationRoutes(deps));
 
   app.route('/api', api);

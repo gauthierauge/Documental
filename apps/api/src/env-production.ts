@@ -12,6 +12,10 @@ export function productionProblems(env: Env): string[] {
   rules.clientEmail('MAIL_FROM', env.MAIL_FROM);
   rules.secret('AUTH_SECRET', env.AUTH_SECRET);
   rules.publicUrl('APP_URL', env.APP_URL);
+  if (env.WEBRTC_TURN_URL) {
+    rules.required('WEBRTC_TURN_USERNAME', env.WEBRTC_TURN_USERNAME);
+    rules.required('WEBRTC_TURN_CREDENTIAL', env.WEBRTC_TURN_CREDENTIAL);
+  }
   return rules.problems;
 }
 
