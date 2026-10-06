@@ -11,9 +11,10 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const form = init?.body instanceof FormData;
   const response = await fetch(`/api${path}`, {
     ...init,
-    headers: { 'content-type': 'application/json', ...init?.headers },
+    headers: { ...(form ? {} : { 'content-type': 'application/json' }), ...init?.headers },
   });
   const body = (await response.json().catch(() => ({}))) as ApiError['body'];
   if (response.status === 429)

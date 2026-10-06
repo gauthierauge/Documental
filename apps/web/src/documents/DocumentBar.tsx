@@ -47,6 +47,7 @@ export function DocumentBar({
   people,
   state,
   share,
+  vues,
   onFollow,
 }: {
   item: DocumentItem;
@@ -55,6 +56,7 @@ export function DocumentBar({
   people: DocumentPerson[];
   state: EditorState | null;
   share?: ReactNode;
+  vues?: ReactNode;
   onFollow?: (person: DocumentPerson) => void;
 }) {
   return (
@@ -72,6 +74,7 @@ export function DocumentBar({
         </p>
       </div>
       <div className="doc-barre-droite">
+        {vues}
         <Avatars self={self} others={people} {...(onFollow ? { onFollow } : {})} />
         {share}
       </div>

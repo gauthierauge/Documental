@@ -3,7 +3,13 @@ import {
   compareDocuments,
   type DocumentItem,
   documentNameProblem,
+  FILE_MAX_BYTES,
+  FILE_NAME_MAX,
+  fileHref,
+  fileNameProblem,
+  formatFileSize,
   normalizeDocumentName,
+  normalizeFileName,
 } from '@documental/contracts/documents';
 
 function item(kind: DocumentItem['kind'], name: string): DocumentItem {
@@ -57,5 +63,54 @@ describe('Droits sur un document', () => {
     expect(canManageDocument({ id: 'bob', role: 'editeur' }, doc)).toBe(false);
     expect(canManageDocument({ id: 'bob', role: 'admin' }, doc)).toBe(true);
     expect(canManageDocument({ id: 'bob', role: 'admin' }, { createdBy: null })).toBe(true);
+  });
+});
+
+describe('formatFileSize', () => {
+  it('passe aux paliers du système, en base 1000', () => {
+    expect(formatFileSize(0)).toBe('0 o');
+    expect(formatFileSize(940)).toBe('940 o');
+    expect(formatFileSize(1_000)).toBe('1 ko');
+    expect(formatFileSize(240_000)).toBe('240 ko');
+    expect(formatFileSize(2_400_000)).toBe('2,4 Mo');
+    expect(formatFileSize(25_000_000)).toBe('25 Mo');
+    expect(formatFileSize(3_000_000_000)).toBe('3 Go');
+  });
+
+  it('ne traîne pas de décimale inutile', () => {
+    expect(formatFileSize(FILE_MAX_BYTES)).toBe('25 Mo');
+  });
+});
+
+describe('normalizeFileName', () => {
+  it('retire le chemin que certains navigateurs envoient', () => {
+    expect(normalizeFileName('C:\\Users\\moi\\plan.pdf')).toBe('plan.pdf');
+    expect(normalizeFileName('/home/moi/plan.pdf')).toBe('plan.pdf');
+  });
+
+  it('resserre les espaces', () => {
+    expect(normalizeFileName('  mon   plan.pdf ')).toBe('mon plan.pdf');
+  });
+});
+
+describe('fileNameProblem', () => {
+  it('accepte un nom ordinaire', () => {
+    expect(fileNameProblem('plan v2.pdf')).toBeNull();
+  });
+
+  it('refuse un nom vide, réservé ou invisible', () => {
+    expect(fileNameProblem('   ')).toMatch(/nom/);
+    expect(fileNameProblem('..')).toMatch(/réservé/);
+    expect(fileNameProblem(`a${String.fromCharCode(0)}b.pdf`)).toMatch(/invisible/);
+  });
+
+  it('refuse un nom trop long', () => {
+    expect(fileNameProblem(`${'a'.repeat(FILE_NAME_MAX)}.pdf`)).toMatch(/dépasse/);
+  });
+});
+
+describe('fileHref', () => {
+  it('échappe l’identifiant', () => {
+    expect(fileHref('a b/c')).toBe('/api/documents/fichiers/a%20b%2Fc');
   });
 });
