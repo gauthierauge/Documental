@@ -7,8 +7,8 @@ vi.mock('@/auth/client', () => ({ useCurrentUser: vi.fn() }));
 vi.mock('@/invitations/SharePanel', () => ({ SharePanel: () => null }));
 
 interface FauxEditeur {
-  onText?: (text: string) => void;
-  onFiles?: (files: File[]) => void;
+  onText?: ((text: string) => void) | undefined;
+  onFiles?: ((files: File[]) => void) | undefined;
 }
 
 const { editeurs, insertions, texteInitial } = vi.hoisted(() => ({
@@ -18,7 +18,7 @@ const { editeurs, insertions, texteInitial } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/edition/Editor', async () => {
-  const { useEffect } = await import('react');
+  const { useEffect, useRef } = await import('react');
   return {
     Editor: ({
       onText,
@@ -26,10 +26,13 @@ vi.mock('@/edition/Editor', async () => {
       hidden,
       insert,
     }: FauxEditeur & { hidden?: boolean; insert?: { text: string; nonce: number } | null }) => {
+      const entree = useRef<FauxEditeur>({});
+      entree.current.onText = onText;
+      entree.current.onFiles = onFiles;
       useEffect(() => {
-        editeurs.push({ ...(onText ? { onText } : {}), ...(onFiles ? { onFiles } : {}) });
-        onText?.(texteInitial.value);
-      }, [onText, onFiles]);
+        editeurs.push(entree.current);
+        entree.current.onText?.(texteInitial.value);
+      }, []);
       useEffect(() => {
         if (insert) insertions.push(insert.text);
       }, [insert]);
@@ -69,9 +72,14 @@ function serve(body: DocumentDetail = detail) {
   );
 }
 
-async function ouvrir() {
+async function ouvrir(): Promise<FauxEditeur> {
   render(<DocumentPage id="d1" />);
   await screen.findByRole('button', { name: 'Aperçu' });
+  return waitFor(() => {
+    const editeur = editeurs[0];
+    if (!editeur) throw new Error('L’éditeur n’a pas été monté.');
+    return editeur;
+  });
 }
 
 describe('Page d’un document', () => {
@@ -108,9 +116,9 @@ describe('Page d’un document', () => {
   });
 
   it('reflète dans l’aperçu un texte arrivé après l’ouverture', async () => {
-    await ouvrir();
+    const editeur = await ouvrir();
     fireEvent.click(screen.getByRole('button', { name: 'Aperçu' }));
-    editeurs[0]?.onText?.('## Ailleurs');
+    editeur.onText?.('## Ailleurs');
     expect(await screen.findByRole('heading', { level: 3, name: 'Ailleurs' })).toBeInTheDocument();
   });
 
@@ -149,10 +157,10 @@ describe('Page d’un document', () => {
           }),
     );
     vi.stubGlobal('fetch', fetchMock);
-    await ouvrir();
+    const editeur = await ouvrir();
 
     const image = new File([new Uint8Array(4) as BlobPart], 'schema.png', { type: 'image/png' });
-    editeurs[0]?.onFiles?.([image]);
+    editeur.onFiles?.([image]);
 
     await waitFor(() => expect(insertions).toEqual(['\n![schema](/api/documents/fichiers/f9)\n']));
     const envoi = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST') as unknown as [
@@ -178,10 +186,10 @@ describe('Page d’un document', () => {
             }),
       ),
     );
-    await ouvrir();
+    const editeur = await ouvrir();
 
     const image = new File([new Uint8Array(4) as BlobPart], 'schema.png', { type: 'image/png' });
-    editeurs[0]?.onFiles?.([image]);
+    editeur.onFiles?.([image]);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Seule une image');
     expect(insertions).toEqual([]);
