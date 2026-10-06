@@ -7,6 +7,7 @@ import { navigate } from '@/router';
 import { Card } from '@/ui/Card';
 import { Notice } from '@/ui/Notice';
 import { Page } from '@/ui/Page';
+import { CommunicationPanel } from '@/communication/CommunicationPanel';
 
 export function DocumentPage({ id }: { id: string }) {
   const user = useSignedIn(`/documents/${id}`);
@@ -52,7 +53,10 @@ export function DocumentPage({ id }: { id: string }) {
     >
       <Breadcrumb path={detail.path} current />
       {item.kind === 'text' ? (
-        <Editor documentId={item.id} userId={user.id} />
+        <div className="com-espace">
+          <Editor documentId={item.id} userId={user.id} />
+          <CommunicationPanel documentId={item.id} user={{ id: user.id, name: user.name }} />
+        </div>
       ) : (
         <Card>
           <p>L’aperçu de ce fichier arrive bientôt.</p>

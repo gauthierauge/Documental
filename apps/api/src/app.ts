@@ -21,6 +21,7 @@ import { betterAuthTooMany } from './http/rate-limit';
 import { adminRoutes, publicSettingsRoute } from './admin/routes';
 import { documentRoutes } from '@/documents/routes';
 import { editionRoutes } from '@/edition/routes';
+import { communicationConfigRoutes, communicationRoutes } from '@/communication/routes';
 
 export interface Deps {
   env: Env;
@@ -102,6 +103,8 @@ export function createApp(deps: Deps) {
   api.route('/reglages/publics', publicSettingsRoute(deps));
   api.route('/documents', documentRoutes(deps));
   api.route('/documents', editionRoutes(deps));
+  api.route('/documents', communicationRoutes(deps));
+  api.route('/communication', communicationConfigRoutes(deps));
   // Page « Démarrage » (état des modules) : en développement et en test seulement.
   if (deps.env.NODE_ENV !== 'production') api.route('/demarrage', startupRoutes(deps));
 

@@ -7,7 +7,8 @@ type SecureHeadersOptions = NonNullable<Parameters<typeof secureHeaders>[0]>;
 
 /**
  * Fonctions du navigateur coupées pour toutes les pages : une injection de script ne peut pas
- * s'en servir. Les passkeys (publickey-credentials) gardent leur valeur par défaut ('self').
+ * s'en servir. Le micro reste limité à notre origine pour les appels audio ; les passkeys
+ * (publickey-credentials) gardent également leur valeur par défaut ('self').
  */
 export const PERMISSIONS_POLICY: NonNullable<SecureHeadersOptions['permissionsPolicy']> = {
   accelerometer: [],
@@ -19,7 +20,7 @@ export const PERMISSIONS_POLICY: NonNullable<SecureHeadersOptions['permissionsPo
   hid: [],
   idleDetection: [],
   magnetometer: [],
-  microphone: [],
+  microphone: ['self'],
   midi: [],
   payment: [],
   serial: [],

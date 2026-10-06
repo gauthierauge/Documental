@@ -1,0 +1,228 @@
+.com-espace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(calc(var(--espace-8) * 4), 28%);
+  align-items: stretch;
+  gap: var(--espace-5);
+  min-height: calc(100dvh - var(--espace-8) * 3);
+}
+
+.com-panneau {
+  position: sticky;
+  top: calc(var(--espace-8) * 2);
+  height: calc(100dvh - var(--espace-8) * 3);
+  min-height: calc(var(--espace-8) * 7);
+}
+
+.com-espace .ed-editeur {
+  height: 100%;
+}
+
+.com-espace .ed-texte {
+  flex: 1;
+  min-height: 0;
+}
+
+.com-panneau > .ui-vide {
+  flex: 1;
+}
+
+.com-participants {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  padding-block-end: var(--espace-3);
+  border-bottom: var(--trait-fin) solid var(--couleur-bordure);
+}
+
+.com-vocal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  padding: var(--espace-3);
+  border: var(--trait-fin) solid var(--couleur-bordure);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.com-vocal[data-connecte] {
+  border-color: var(--couleur-accent);
+  background: var(--couleur-accent-doux);
+}
+
+.com-vocal-entete,
+.com-vocal-liste li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+}
+
+.com-vocal-titre {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
+}
+
+.com-icone {
+  width: var(--espace-5);
+  height: var(--espace-5);
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.com-vocal-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.com-vocal-participants {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  padding-block-start: var(--espace-2);
+}
+
+.com-vocal-liste li {
+  justify-content: flex-start;
+  padding: var(--espace-2);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface);
+}
+
+.com-vocal-liste li[data-moi] {
+  outline: var(--trait-fin) solid var(--couleur-accent);
+}
+
+.com-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--taille-cible);
+  height: var(--taille-cible);
+  flex: none;
+  border-radius: var(--rayon-rond);
+  background: var(--couleur-accent-doux);
+  color: var(--couleur-accent-sur-doux);
+  font: var(--typo-legende);
+  font-weight: var(--graisse-moyenne);
+}
+
+.com-vocal-nom {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.com-vocal-nom strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.com-vocal-nom small {
+  color: var(--couleur-texte-attenue);
+}
+
+.com-vocal-liste .ui-badge {
+  gap: var(--espace-1);
+}
+
+.com-vocal-liste .com-icone {
+  width: var(--espace-4);
+  height: var(--espace-4);
+}
+
+.com-vocal-connecte {
+  margin: 0;
+  color: var(--couleur-accent-sur-doux);
+  font: var(--typo-petit);
+  font-weight: var(--graisse-moyenne);
+}
+
+.com-vocal-controles {
+  display: grid;
+  gap: var(--espace-2);
+}
+
+.com-vocal-controles .ui-bouton {
+  width: 100%;
+}
+
+.com-section-label,
+.com-aide,
+.com-toast-aide {
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.com-participant,
+.com-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+}
+
+.com-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espace-3);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.com-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+  padding: var(--espace-3);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.com-message-moi {
+  background: var(--couleur-accent-doux);
+}
+
+.com-message-meta {
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.com-message p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.com-formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+  padding-block-start: var(--espace-3);
+  border-top: var(--trait-fin) solid var(--couleur-bordure);
+}
+
+@media (max-width: 64rem) {
+  .com-espace {
+    grid-template-columns: 1fr;
+  }
+
+  .com-panneau {
+    position: static;
+    height: 70dvh;
+  }
+}

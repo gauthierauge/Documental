@@ -46,6 +46,19 @@ const schema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
+  WEBRTC_STUN_URL: z.string().default('stun:stun.cloudflare.com:3478'),
+  WEBRTC_TURN_URL: z
+    .string()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  WEBRTC_TURN_USERNAME: z
+    .string()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  WEBRTC_TURN_CREDENTIAL: z
+    .string()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
 });
 
 export type Env = z.infer<typeof schema>;
