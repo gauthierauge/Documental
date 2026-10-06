@@ -21,6 +21,14 @@
   min-height: 0;
 }
 
+.com-contenu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+  min-width: 0;
+  min-height: 0;
+}
+
 .com-espace .ed-editeur,
 .com-espace .ed-zone {
   height: 100%;

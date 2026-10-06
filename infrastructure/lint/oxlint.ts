@@ -199,5 +199,9 @@ export const oxlint: OxlintConfig = {
       files: ['apps/web/src/ui/Table.tsx'],
       rules: { 'jsx-a11y/no-noninteractive-tabindex': 'off' },
     },
+    {
+      files: ['apps/web/src/documents/Markdown.tsx'],
+      rules: { 'react/no-array-index-key': 'off' },
+    },
   ],
 };
