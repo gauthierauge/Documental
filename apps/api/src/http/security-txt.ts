@@ -1,9 +1,5 @@
 import type { Handler } from 'hono';
 
-// /.well-known/security.txt (RFC 9116) : où signaler une faille. Le champ Expires est
-// obligatoire et doit rester à moins d'un an : il est recalculé à chaque appel, tant que le
-// contact est configuré (SECURITY_CONTACT).
-
 const VALIDITY_DAYS = 180;
 const DAY_MS = 24 * 60 * 60 * 1000;
 

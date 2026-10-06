@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
-import { DOCUMENT_KIND_LABEL, type FolderListing } from '@documental/contracts/documents';
+import {
+  canManageDocument,
+  DOCUMENT_KIND_LABEL,
+  type DocumentItem,
+  type FolderListing,
+} from '@documental/contracts/documents';
 import { api, ApiError } from '@/api';
 import { type Action, ItemActions } from '@/documents/ItemActions';
 import { Breadcrumb, formatDate, itemHref, useSignedIn } from '@/documents/shared';
 import { Link } from '@/router';
 import { Button, ButtonLink } from '@/ui/Button';
+import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
 import { Notice } from '@/ui/Notice';
 import { Page } from '@/ui/Page';
@@ -21,6 +27,7 @@ export function Documents({ folderId }: { folderId: string | null }) {
   const [error, setError] = useState<string | null>(null);
   const [action, setAction] = useState<Action | null>(null);
   const [version, setVersion] = useState(0);
+  const [shared, setShared] = useState<DocumentItem[]>([]);
 
   useEffect(() => {
     setAction(null);
@@ -42,7 +49,24 @@ export function Documents({ folderId }: { folderId: string | null }) {
     };
   }, [user, folderId, version]);
 
+  useEffect(() => {
+    if (!user || folderId) {
+      setShared([]);
+      return;
+    }
+    let active = true;
+    api<{ items: DocumentItem[] }>('/documents/partages')
+      .then((result) => active && setShared(result.items))
+      .catch(() => active && setShared([]));
+    return () => {
+      active = false;
+    };
+  }, [user, folderId, version]);
+
   if (!user) return null;
+
+  const manageable = (item: DocumentItem) => canManageDocument(user, item);
+  const showActions = listing?.items.some(manageable) ?? false;
 
   const title = listing?.folder?.name ?? (folderId ? '…' : 'Documents');
   const parentHref = listing?.folder?.parentId
@@ -56,7 +80,7 @@ export function Documents({ folderId }: { folderId: string | null }) {
 
       {listing && (
         <div className="ui-actions">
-          {listing.canEdit && (
+          {listing.canCreate && (
             <>
               <Button
                 variant="primaire"
@@ -90,6 +114,24 @@ export function Documents({ folderId }: { folderId: string | null }) {
         />
       )}
 
+      {shared.length > 0 && (
+        <Card title="Partagés avec moi">
+          <ul className="doc-partages">
+            {shared.map((item) => (
+              <li key={item.id}>
+                <Link href={itemHref(item)} className={`doc-nom doc-nom-${item.kind}`}>
+                  {item.name}
+                </Link>
+                <span className="doc-discret">
+                  {item.createdBy ? `de ${item.createdBy.name} · ` : ''}modifié le{' '}
+                  {formatDate(item.updatedAt)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {listing && listing.items.length > 0 && (
         <Table label={`Contenu de ${title}`}>
           <thead>
@@ -98,7 +140,7 @@ export function Documents({ folderId }: { folderId: string | null }) {
               <th scope="col">Type</th>
               <th scope="col">Dernière modification</th>
               <th scope="col">Modifié par</th>
-              {listing.canEdit && (
+              {showActions && (
                 <th scope="col">
                   <span className="doc-masque">Actions</span>
                 </th>
@@ -118,31 +160,33 @@ export function Documents({ folderId }: { folderId: string | null }) {
                   <time dateTime={item.updatedAt}>{formatDate(item.updatedAt)}</time>
                 </td>
                 <td>{item.updatedBy?.name ?? 'Compte supprimé'}</td>
-                {listing.canEdit && (
+                {showActions && (
                   <td>
-                    <div className="doc-actions">
-                      <Button
-                        variant="discret"
-                        aria-label={`Renommer ${item.name}`}
-                        onClick={() => setAction({ kind: 'rename', item })}
-                      >
-                        Renommer
-                      </Button>
-                      <Button
-                        variant="discret"
-                        aria-label={`Déplacer ${item.name}`}
-                        onClick={() => setAction({ kind: 'move', item })}
-                      >
-                        Déplacer
-                      </Button>
-                      <Button
-                        variant="discret"
-                        aria-label={`Supprimer ${item.name}`}
-                        onClick={() => setAction({ kind: 'delete', item })}
-                      >
-                        Supprimer
-                      </Button>
-                    </div>
+                    {manageable(item) && (
+                      <div className="doc-actions">
+                        <Button
+                          variant="discret"
+                          aria-label={`Renommer ${item.name}`}
+                          onClick={() => setAction({ kind: 'rename', item })}
+                        >
+                          Renommer
+                        </Button>
+                        <Button
+                          variant="discret"
+                          aria-label={`Déplacer ${item.name}`}
+                          onClick={() => setAction({ kind: 'move', item })}
+                        >
+                          Déplacer
+                        </Button>
+                        <Button
+                          variant="discret"
+                          aria-label={`Supprimer ${item.name}`}
+                          onClick={() => setAction({ kind: 'delete', item })}
+                        >
+                          Supprimer
+                        </Button>
+                      </div>
+                    )}
                   </td>
                 )}
               </tr>
@@ -155,7 +199,7 @@ export function Documents({ folderId }: { folderId: string | null }) {
         <EmptyState
           title={listing.folder ? 'Ce dossier est vide.' : 'Aucun document pour l’instant.'}
         >
-          {listing.canEdit
+          {listing.canCreate
             ? 'Créez un document ou un dossier pour commencer.'
             : 'Les documents apparaîtront ici dès qu’un éditeur en créera.'}
         </EmptyState>

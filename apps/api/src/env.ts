@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Protection du serveur HTTP : valeurs par défaut sûres, toutes réglables (voir .env.example).
 const httpSchema = {
   BODY_MAX_KB: z.coerce.number().int().positive().max(10_240).default(100),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),
@@ -11,13 +10,10 @@ const httpSchema = {
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(60_000).default(7_000),
 };
 
-// Les variables d'environnement sont validées au démarrage : une valeur manquante arrête l'API
-// tout de suite, plutôt qu'au premier appel en production.
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(8787),
   ...httpSchema,
-  // Contact de /.well-known/security.txt : adresse e-mail ou page https. Vide : pas de fichier.
   SECURITY_CONTACT: z
     .union([
       z.email().transform((email) => `mailto:${email}`),
@@ -25,8 +21,6 @@ const schema = z.object({
     ])
     .optional()
     .or(z.literal('').transform(() => undefined)),
-  // true seulement pour l'essai local de l'image de production (compose.yaml) : les adresses
-  // http://localhost y sont tolérées. Jamais sur un serveur : make env-check le refuse.
   LOCAL_TRIAL: z.stringbool().default(false),
   DATABASE_URL: z
     .string()
@@ -67,7 +61,6 @@ export type EnvResult =
   | { success: true; env: Env }
   | { success: false; problems: string[]; invalid: string[] };
 
-/** Valide sans lever d'erreur : tous les problèmes d'un coup, en français (make env-check). */
 export function parseEnv(source: Record<string, string | undefined>): EnvResult {
   const parsed = schema.safeParse(source, { error: z.locales.fr().localeError });
   if (parsed.success) return { success: true, env: parsed.data };

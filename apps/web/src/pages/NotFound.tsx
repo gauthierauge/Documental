@@ -7,7 +7,7 @@ export function NotFound() {
     <Page title="Page introuvable">
       <EmptyState
         title="Cette adresse ne mène nulle part."
-        action={<ButtonLink href="/">Revenir à l’accueil</ButtonLink>}
+        action={<ButtonLink href="/documents">Revenir aux documents</ButtonLink>}
       >
         Le lien est peut-être ancien, ou mal recopié.
       </EmptyState>

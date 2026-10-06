@@ -1,11 +1,5 @@
-// Arrêt propre sur SIGTERM (docker stop, hébergeur qui redéploie) et SIGINT (Ctrl+C) : le
-// serveur cesse d'accepter des connexions, laisse finir les requêtes en cours, puis ce qui a été
-// ouvert au démarrage est fermé (tâches planifiées, base…), dans l'ordre inverse d'ouverture.
-// Chaque module s'inscrit avec `onShutdown(fn)` juste après avoir ouvert sa ressource.
-
 export type Cleanup = () => unknown;
 
-/** Temps laissé aux fermetures après l'attente des requêtes (docker stop tue au bout de 10 s). */
 export const CLEANUP_MARGIN_MS = 2_000;
 
 export class Shutdown {
@@ -18,11 +12,6 @@ export class Shutdown {
     this.cleanups.push(cleanup);
   }
 
-  /**
-   * Exécute les fermetures, de la dernière inscrite à la première, une seule fois même si on
-   * l'appelle plusieurs fois. Renvoie le code de sortie : 0, ou 1 si une fermeture a échoué ou
-   * si le délai est dépassé.
-   */
   run(deadlineMs: number): Promise<number> {
     this.running ??= this.runAll(deadlineMs);
     return this.running;
@@ -57,15 +46,10 @@ export class Shutdown {
   }
 }
 
-/** Ce que l'arrêt demande au serveur HTTP (Bun.serve). */
 export interface StoppableServer {
   stop(closeActiveConnections?: boolean): Promise<void>;
 }
 
-/**
- * Cesse d'accepter des connexions et attend la fin des requêtes en cours, au plus `ms`
- * millisecondes ; au-delà, les connexions restantes sont coupées.
- */
 export async function drainServer(server: StoppableServer, ms: number): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timedOut = new Promise<'delai'>((resolve) => {
@@ -80,13 +64,11 @@ export async function drainServer(server: StoppableServer, ms: number): Promise<
 }
 
 export interface SignalOptions {
-  /** Délai d'attente des requêtes ; les fermetures ont CLEANUP_MARGIN_MS de plus. */
   timeoutMs: number;
   exit?: (code: number) => void;
   signals?: { on(signal: 'SIGTERM' | 'SIGINT', listener: () => void): unknown };
 }
 
-/** Branche l'arrêt sur SIGTERM et SIGINT. Un second signal force la sortie. */
 export function stopOnSignals(shutdown: Shutdown, options: SignalOptions): void {
   const exit = options.exit ?? ((code: number) => process.exit(code));
   const signals = options.signals ?? process;
@@ -104,14 +86,12 @@ export function stopOnSignals(shutdown: Shutdown, options: SignalOptions): void 
   signals.on('SIGINT', stop);
 }
 
-/** Le registre du serveur : `onShutdown(() => database.close())`. */
 const registry = new Shutdown();
 
 export function onShutdown(cleanup: Cleanup): void {
   registry.onShutdown(cleanup);
 }
 
-/** Démarre l'écoute des signaux pour le registre du serveur. */
 export function handleShutdownSignals(timeoutMs: number): void {
   stopOnSignals(registry, { timeoutMs });
 }

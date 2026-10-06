@@ -1,4 +1,5 @@
-import { eq, isNull, type SQL } from 'drizzle-orm';
+import { and, eq, isNull, type SQL } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import {
   compareDocuments,
   type DocumentCrumb,
@@ -7,7 +8,7 @@ import {
   type FolderSummary,
 } from '@documental/contracts/documents';
 import type { Db } from '@/db/client';
-import { document, user } from '@/db/schema';
+import { document, documentCollaborator, user } from '@/db/schema';
 
 const MAX_DEPTH = 64;
 
@@ -24,6 +25,8 @@ function isUniqueViolation(error: unknown): boolean {
   return false;
 }
 
+const creator = alias(user, 'creator');
+
 const columns = {
   id: document.id,
   kind: document.kind,
@@ -33,6 +36,8 @@ const columns = {
   updatedAt: document.updatedAt,
   updatedById: document.updatedBy,
   updatedByName: user.name,
+  createdById: document.createdBy,
+  createdByName: creator.name,
 };
 
 type Row = {
@@ -44,7 +49,13 @@ type Row = {
   updatedAt: Date;
   updatedById: string | null;
   updatedByName: string | null;
+  createdById: string | null;
+  createdByName: string | null;
 };
+
+function person(id: string | null, name: string | null) {
+  return id && name ? { id, name } : null;
+}
 
 function toItem(row: Row): DocumentItem {
   return {
@@ -54,10 +65,8 @@ function toItem(row: Row): DocumentItem {
     parentId: row.parentId,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-    updatedBy:
-      row.updatedById && row.updatedByName
-        ? { id: row.updatedById, name: row.updatedByName }
-        : null,
+    updatedBy: person(row.updatedById, row.updatedByName),
+    createdBy: person(row.createdById, row.createdByName),
   };
 }
 
@@ -69,7 +78,32 @@ export class DocumentStore {
       .select(columns)
       .from(document)
       .leftJoin(user, eq(user.id, document.updatedBy))
+      .leftJoin(creator, eq(creator.id, document.createdBy))
       .where(where);
+  }
+
+  async sharedWith(userId: string): Promise<DocumentItem[]> {
+    const rows = await this.db
+      .select(columns)
+      .from(documentCollaborator)
+      .innerJoin(document, eq(document.id, documentCollaborator.documentId))
+      .leftJoin(user, eq(user.id, document.updatedBy))
+      .leftJoin(creator, eq(creator.id, document.createdBy))
+      .where(eq(documentCollaborator.userId, userId));
+    return rows.map(toItem).sort(compareDocuments);
+  }
+
+  async isCollaborator(documentId: string, userId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ userId: documentCollaborator.userId })
+      .from(documentCollaborator)
+      .where(
+        and(
+          eq(documentCollaborator.documentId, documentId),
+          eq(documentCollaborator.userId, userId),
+        ),
+      );
+    return Boolean(row);
   }
 
   async get(id: string): Promise<DocumentItem | null> {

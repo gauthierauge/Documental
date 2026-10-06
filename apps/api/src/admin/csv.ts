@@ -2,9 +2,6 @@ import type { EntityConfig } from '@documental/contracts/admin-types';
 import { formatValue } from '@documental/contracts/admin-types';
 import type { Row } from './store';
 
-// Export CSV lisible dans Excel en français : séparateur point-virgule, BOM UTF-8,
-// et protection contre l'injection de formules (=, +, -, @ en début de cellule).
-
 function cell(value: string): string {
   const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
   return /[";\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;

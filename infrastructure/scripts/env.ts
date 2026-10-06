@@ -1,12 +1,7 @@
-// `make env` (bun scripts/env.ts init) : crée le .env de développement à partir de .env.example,
-// ou lui ajoute les variables apparues depuis. Rien n'est jamais remplacé.
-// `make env-check` (bun scripts/env.ts check [fichier]) : vérifie un fichier d'environnement de
-// production avec les règles du projet (scripts/env-check.ts). Tous les problèmes d'un coup.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { devEnvText, missingEntries, parseEnvText } from './env-file';
 import { envProblems } from './env-check';
 
-/** Les valeurs de développement qui ne peuvent pas vivre dans .env.example : secrets générés. */
 const DEV_VALUES: Record<string, string> = {
   AUTH_SECRET: '{{secret:48}}',
   POSTGRES_PASSWORD: '{{secret:32}}',

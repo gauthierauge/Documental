@@ -2,8 +2,6 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from 'react';
 import { Link } from '@/router';
 import './ui.css';
 
-// Boutons et liens en forme de bouton : une action principale par écran au plus.
-
 export type ButtonVariant = 'primaire' | 'secondaire' | 'discret' | 'danger';
 
 export function buttonClass(variant: ButtonVariant, extra?: string): string {
@@ -26,7 +24,6 @@ type ButtonLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   variant?: ButtonVariant;
 };
 
-/** Un lien vers une page de l'app, qui a l'air d'un bouton. */
 export function ButtonLink({ variant = 'secondaire', className, ...rest }: ButtonLinkProps) {
   return <Link className={buttonClass(variant, className)} {...rest} />;
 }

@@ -1,5 +1,4 @@
-// @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { App } from '@/App';
 
 function respond(body: unknown, status = 200) {
@@ -15,37 +14,38 @@ describe('App', () => {
     window.history.pushState(null, '', '/');
   });
 
-  it('affiche la coquille et, en développement, la page Démarrage', async () => {
+  it('affiche la coquille et mène de / aux documents', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async (input: RequestInfo | URL) =>
-        String(input).endsWith('/demarrage')
-          ? respond({ environnement: 'development' })
-          : respond({ ok: true }),
-      ),
+      vi.fn(async () => respond({ ok: true })),
     );
     render(<App />);
-    // La navigation dépend de la mise en page : ses tests sont dans tests/web/ui/AppShell.test.tsx.
     expect(screen.getByRole('link', { name: 'Aller au contenu' })).toHaveAttribute(
       'href',
       '#contenu',
     );
     expect(screen.getByRole('main')).toHaveAttribute('id', 'contenu');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Démarrage' })).toBeInTheDocument();
-    const api = await screen.findByRole('region', { name: 'API' });
-    expect(await within(api).findByText('En marche')).toBeInTheDocument();
-    expect(await screen.findByText('development')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Accueil' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Documents' })).toHaveAttribute('href', '/documents');
+    await waitFor(() => expect(window.location.pathname).not.toBe('/'));
   });
 
-  it('signale une API injoignable', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => respond({}, 503)),
-    );
-    render(<App />);
-    const api = await screen.findByRole('region', { name: 'API' });
-    expect(await within(api).findByText('Injoignable')).toBeInTheDocument();
-  });
+  it.each(['/connexion', '/mot-de-passe/oublie', '/mot-de-passe/nouveau'])(
+    'affiche %s seule, sans menu ni barre du haut',
+    (path) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => respond({})),
+      );
+      window.history.pushState(null, '', path);
+      render(<App />);
+      expect(screen.getByRole('main')).toHaveAttribute('id', 'contenu');
+      expect(screen.getByText('Documental')).toBeInTheDocument();
+      expect(screen.queryByRole('navigation', { name: 'Navigation principale' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Documents' })).toBeNull();
+      expect(document.querySelector('.ui-coquille')).toBeNull();
+    },
+  );
 
   it('répond « Page introuvable » sur une adresse inconnue', () => {
     vi.stubGlobal(
@@ -55,6 +55,9 @@ describe('App', () => {
     window.history.pushState(null, '', '/nulle-part');
     render(<App />);
     expect(screen.getByRole('heading', { level: 1, name: 'Page introuvable' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Revenir à l’accueil' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Revenir aux documents' })).toHaveAttribute(
+      'href',
+      '/documents',
+    );
   });
 });

@@ -12,22 +12,14 @@ import { betterAuthStorage } from '@/http/rate-limit';
 import { rateLimitStore } from '@/http/rate-limit-store';
 import { PASSWORD_MAX, PASSWORD_MIN, passwordProblem } from '@documental/contracts/password-policy';
 
-// Connexion par e-mail et mot de passe, avec double authentification (application TOTP et codes
-// de secours) : obligatoire pour les admins, proposée aux autres. Pas d'inscription libre : un
-// compte existe parce qu'un admin l'a invité ; l'invité choisit son mot de passe par un lien
-// reçu par e-mail. Better Auth gère sessions, hachage (scrypt) et TOTP ; on ne code jamais cela
-// soi-même. Les règles sont décrites dans docs/connexion.md.
-
 const DEV_SECRET = 'secret-de-developpement-uniquement-ne-pas-utiliser';
 
 export const ROLES = ['admin', 'editeur', 'lecteur'] as const;
 export type Role = (typeof ROLES)[number];
 
-/** Durée de validité d'un lien de réinitialisation, et d'un lien d'invitation. */
 export const RESET_LINK_HOURS = 1;
 export const INVITATION_LINK_HOURS = 72;
 
-/** Les chemins où un mot de passe est choisi : les règles s'y appliquent. */
 const NEW_PASSWORD_PATHS = ['/reset-password', '/change-password'];
 
 export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
@@ -48,10 +40,8 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
       minPasswordLength: PASSWORD_MIN,
       maxPasswordLength: PASSWORD_MAX,
       resetPasswordTokenExpiresIn: 60 * 60 * RESET_LINK_HOURS,
-      // Un mot de passe changé ferme toutes les sessions ouvertes, y compris celle d'un intrus.
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url: link, token }) => {
-        // Un compte sans mot de passe est un invité : même lien, autre message, plus longue durée.
         const [credential] = await db
           .select({ id: schema.account.id })
           .from(schema.account)
@@ -77,7 +67,6 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
       },
     },
     session: {
-      // Une journée de travail ; au-delà, on se reconnecte.
       expiresIn: 60 * 60 * 8,
       updateAge: 60 * 60,
     },
@@ -86,13 +75,10 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
         role: { type: 'string', required: false, defaultValue: 'lecteur', input: false },
       },
     },
-    // Toujours actif, développement et tests compris : la protection se vérifie comme le reste.
-    // Par adresse IP et par chemin ; l'adresse vient de TRUST_PROXY (voir `advanced.ipAddress`).
     rateLimit: {
       enabled: true,
       window: 60,
       max: 100,
-      // Les compteurs avec ceux des autres limites : dans la base si le projet en a une.
       customStorage: betterAuthStorage(rateLimitStore(deps)),
       customRules: {
         '/sign-in/email': { window: 60, max: 5 },
@@ -102,12 +88,8 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
       },
     },
     advanced: {
-      // Cookies Secure (préfixe __Secure-) dès que le site est en https ; le serveur refuse de
-      // démarrer en production si APP_URL ne l'est pas.
       useSecureCookies: url.protocol === 'https:',
       defaultCookieAttributes: { sameSite: 'lax', httpOnly: true },
-      // L'adresse du visiteur, résolue selon TRUST_PROXY (src/server/http/client-ip.ts) : un
-      // en-tête envoyé par le client ne peut pas la remplacer.
       ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
     },
     hooks: {
@@ -120,7 +102,6 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
           if (problem)
             throw new APIError('BAD_REQUEST', { message: problem, code: 'MOT_DE_PASSE_REFUSE' });
         }
-        // Profil : le nom doit être rempli et pas trop long.
         if (ctx.path === '/update-user') {
           const body = ctx.body as { name?: unknown } | undefined;
           if (body?.name !== undefined) {
@@ -147,12 +128,9 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
     plugins: [
       twoFactor({
         issuer: appName,
-        // Dix codes de secours, chiffrés en base ; un code ne sert qu'une fois.
         backupCodeOptions: { amount: 10, length: 10 },
-        // Dix codes faux et le compte attend un quart d'heure avant un nouvel essai.
         accountLockout: { enabled: true, maxFailedAttempts: 10, durationSeconds: 900 },
       }),
-      // Désactivé par défaut : aucun appel réseau sans décision écrite. Voir docs/connexion.md.
       haveIBeenPwned({
         enabled: env.PASSWORD_HIBP,
         paths: NEW_PASSWORD_PATHS,

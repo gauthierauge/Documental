@@ -15,7 +15,6 @@ declare module 'hono' {
   }
 }
 
-/** Lit la session à chaque requête : `c.get('user')` vaut l'utilisateur connecté, ou null. */
 export function loadSession(auth: Auth) {
   return createMiddleware(async (c, next) => {
     const result = await auth.api.getSession({ headers: c.req.raw.headers });
@@ -25,7 +24,6 @@ export function loadSession(auth: Auth) {
   });
 }
 
-/** Les droits se vérifient sur chaque route, jamais seulement dans l'interface. */
 export function requireUser(...roles: Role[]) {
   return createMiddleware(async (c, next) => {
     const user = c.get('user');

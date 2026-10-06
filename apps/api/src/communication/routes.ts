@@ -4,6 +4,7 @@ import type { Deps } from '@/app';
 import { requireUser, type SessionUser } from '@/auth/middleware';
 import { type CommunicationConnection, CommunicationHub } from '@/communication/hub';
 import { CommunicationStore } from '@/communication/store';
+import { accessTo } from '@/documents/access';
 import { DocumentStore } from '@/documents/store';
 import type { WebRtcConfiguration } from '@documental/contracts/communication';
 
@@ -61,9 +62,12 @@ export function communicationRoutes(deps: Deps) {
       if (c.req.header('origin') !== allowedOrigin) {
         throw new HTTPException(403, { message: 'Origine refusée' });
       }
-      if (!(await documents.get(c.req.param('id')))) {
+      const item = await documents.get(c.req.param('id'));
+      if (!item) {
         throw new HTTPException(404, { message: 'Document introuvable' });
       }
+      const access = await accessTo(documents, currentUser(c), item);
+      if (!access.write) throw new HTTPException(403, { message: 'Accès refusé' });
       await next();
     },
     live,

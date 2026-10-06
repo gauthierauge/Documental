@@ -13,7 +13,8 @@
   min-height: calc(var(--espace-8) * 7);
 }
 
-.com-espace .ed-editeur {
+.com-espace .ed-editeur,
+.com-espace .ed-zone {
   height: 100%;
 }
 

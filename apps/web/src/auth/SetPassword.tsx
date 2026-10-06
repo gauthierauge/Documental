@@ -6,8 +6,6 @@ import { Page } from '@/ui/Page';
 import { authClient, errorMessage, passwordProblem } from './client';
 import { NewPasswordField } from './NewPasswordField';
 
-// Le lien reçu par e-mail (invitation ou mot de passe oublié) arrive ici avec son jeton.
-
 export function SetPassword() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');

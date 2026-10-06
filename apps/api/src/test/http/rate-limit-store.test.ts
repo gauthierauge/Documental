@@ -53,7 +53,6 @@ describe('compteurs de débit dans la base', () => {
     const boundary = 60 * MINUTE;
     for (let i = 0; i < 4; i += 1)
       expect(await first.hit('bascule', rule, boundary - 100 + i)).toBe(0);
-    // Les 4 appels d'il y a 100 ms pèsent encore 4 appels entiers : 6 de plus passent, pas 7.
     const waits = await Promise.all(
       Array.from({ length: 20 }, (_, i) =>
         (i % 2 ? first : second).hit('bascule', rule, boundary + 100),

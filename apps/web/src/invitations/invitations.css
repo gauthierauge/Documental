@@ -1,0 +1,135 @@
+.inv-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inv-liste li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-1) var(--espace-3);
+  min-height: var(--taille-cible);
+}
+
+.inv-liste li > :last-child:is(button) {
+  margin-inline-start: auto;
+}
+
+.inv-nom {
+  font-weight: var(--graisse-moyenne);
+}
+
+.inv-role {
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+}
+
+.inv-recherche {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+}
+
+.inv-panneau {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+}
+
+.inv-lecture {
+  margin: 0;
+  padding: var(--espace-2) var(--espace-3);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-attention-fond);
+  font: var(--typo-petit);
+}
+
+.inv-titre {
+  margin: 0;
+  color: var(--couleur-texte-attenue);
+  font: var(--typo-petit);
+  font-weight: var(--graisse-moyenne);
+}
+
+.inv-qui {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.inv-qui .inv-role {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inv-en-ligne {
+  display: inline-block;
+  width: var(--espace-2);
+  height: var(--espace-2);
+  margin-inline-start: var(--espace-2);
+  border-radius: var(--rayon-rond);
+  background: var(--couleur-succes);
+  vertical-align: middle;
+}
+
+.inv-partage {
+  position: relative;
+}
+
+.inv-popover {
+  position: absolute;
+  top: calc(100% + var(--espace-2));
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+  width: min(26rem, calc(100vw - var(--espace-6)));
+  max-height: 70vh;
+  padding: var(--espace-4);
+  overflow-y: auto;
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--carte-fond);
+  color: var(--carte-texte);
+  box-shadow: var(--ombre-flottante);
+}
+
+.inv-popover[hidden] {
+  display: none;
+}
+
+.inv-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+}
+
+.inv-popover-titre {
+  margin: 0;
+  overflow: hidden;
+  font: var(--typo-titre-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inv-lien {
+  display: flex;
+  gap: var(--espace-2);
+}
+
+.inv-lien .ui-champ {
+  flex: 1;
+  min-width: 0;
+}
+
+.inv-popover p {
+  margin: 0;
+}

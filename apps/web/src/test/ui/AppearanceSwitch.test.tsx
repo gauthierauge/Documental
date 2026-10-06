@@ -1,8 +1,6 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/react';
 import { AppearanceSwitch, applyAppearance, DEFAULT_APPEARANCE } from '@/ui/AppearanceSwitch';
 
-// Le mode par défaut a été choisi à la création du projet : les tests valent pour chacun.
 const OTHER = DEFAULT_APPEARANCE === 'sombre' ? 'clair' : 'sombre';
 
 describe('Apparence', () => {

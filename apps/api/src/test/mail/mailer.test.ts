@@ -1,7 +1,5 @@
 import { createMailer, MemoryMailer } from '@/mail/mailer';
 
-// Les envois passent par fetch, remplacé ici : rien ne sort de la machine pendant les tests.
-
 const MAIL = {
   to: 'client@atelier.test',
   subject: 'Bonjour',
@@ -9,7 +7,6 @@ const MAIL = {
 };
 const FROM = 'Atelier <bonjour@atelier.test>';
 
-/** Un service d'envoi en mémoire : la requête reçue, et la réponse choisie. */
 function fakeService(status: number, body: unknown) {
   const calls: { url: string; init: RequestInit }[] = [];
   vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {

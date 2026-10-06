@@ -5,16 +5,17 @@ import { Field, Input } from '@/ui/Field';
 import { Notice } from '@/ui/Notice';
 import { Page } from '@/ui/Page';
 import { authClient, errorMessage } from './client';
+import { useRedirectWhenSignedIn } from '@/auth/AuthLayout';
 
 type Step = { kind: 'identifiants' } | { kind: 'code'; backup: boolean };
 
 function nextPath(): string {
   const next = new URLSearchParams(window.location.search).get('suite');
-  // Seulement un chemin interne : pas de redirection vers un autre site.
-  return next?.startsWith('/') && !next.startsWith('//') ? next : '/compte';
+  return next?.startsWith('/') && !next.startsWith('//') ? next : '/documents';
 }
 
 export function Login() {
+  useRedirectWhenSignedIn(nextPath);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');

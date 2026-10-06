@@ -1,5 +1,3 @@
-/* Le bouton du menu (et, en barre latérale, celui qui la replie). Uniquement des jetons. */
-
 .ui-menu-bouton {
   display: inline-flex;
   align-items: center;
@@ -18,7 +16,6 @@
   background: var(--bouton-secondaire-fond-survol);
 }
 
-/* Trois traits dessinés avec la couleur du texte du bouton. */
 .ui-menu-icone {
   width: var(--espace-4);
   height: var(--trait-epais);

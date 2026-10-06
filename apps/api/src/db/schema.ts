@@ -1,5 +1,3 @@
-// Schéma de la base. Généré par le kit, puis à toi : modifie-le, puis `bun run db:generate`
-// pour écrire la migration. Les contenus du panel admin se déclarent dans admin.config.ts.
 import {
   type AnyPgColumn,
   bigint,
@@ -9,12 +7,11 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
 } from 'drizzle-orm/pg-core';
-
-// --- Authentification (Better Auth). Les noms des clés sont imposés par Better Auth.
 
 export const user = pgTable('user', {
   id: text('id')
@@ -106,8 +103,6 @@ export const twoFactor = pgTable('two_factor', {
   lockedUntil: timestamp('locked_until', { withTimezone: true }),
 });
 
-// --- Panel admin : journal d'activité et réglages de l'app.
-
 export const auditLog = pgTable('audit_log', {
   id: text('id')
     .primaryKey()
@@ -131,23 +126,6 @@ export const appSettings = pgTable('app_settings', {
     .notNull()
     .$defaultFn(() => new Date()),
   updatedBy: text('updated_by'),
-});
-
-// --- Contenus gérés dans le panel admin (admin.config.ts).
-
-export const clients = pgTable('clients', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  nom: text('nom').notNull(),
-  email: text('email'),
-  created_at: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  updated_at: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  archived_at: timestamp('archived_at', { withTimezone: true }),
 });
 
 export const document = pgTable(
@@ -175,6 +153,26 @@ export const document = pgTable(
   (t) => [
     index('document_parent_idx').on(t.parentId),
     unique('document_name_unique').on(t.parentId, t.name).nullsNotDistinct(),
+  ],
+);
+
+export const documentCollaborator = pgTable(
+  'document_collaborator',
+  {
+    documentId: text('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    invitedBy: text('invited_by').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    primaryKey({ columns: [t.documentId, t.userId] }),
+    index('document_collaborator_user_idx').on(t.userId),
   ],
 );
 
@@ -221,20 +219,13 @@ export const documentMessage = pgTable(
   ],
 );
 
-/** Les tables des contenus, par clé : le panel admin les retrouve ici. */
-export const contentTables = {
-  clients: clients,
-};
-
-// --- Limitation de débit : un compteur par clé (« api:<adresse IP> », « auth:… »), fenêtre
-// glissante approchée. Instants en millisecondes ; une ligne expirée est purgée.
+export const contentTables: Record<string, never> = {};
 
 export const rateLimit = pgTable('rate_limit', {
   key: text('key').primaryKey(),
   windowStart: bigint('window_start', { mode: 'number' }).notNull(),
   count: integer('count').notNull(),
   previous: integer('previous').notNull(),
-  // La décision du dernier appel : l'instruction qui compte la renvoie.
   allowed: boolean('allowed').notNull(),
   expiresAt: bigint('expires_at', { mode: 'number' }).notNull(),
 });

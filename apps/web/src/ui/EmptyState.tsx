@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 import './ui.css';
 
-// Ce qui s'affiche quand il n'y a rien : dire pourquoi, et quoi faire.
-
 export function EmptyState({
   title,
   children,

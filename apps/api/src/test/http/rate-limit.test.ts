@@ -17,9 +17,7 @@ describe('limitation du débit', () => {
     expect([0, 1, 2].map((i) => limiter.hit('ip', start + i))).toEqual([0, 0, 0]);
     const wait = limiter.hit('ip', start + 3);
     expect(wait).toBeGreaterThan(0);
-    // La fenêtre, plus au plus `durée / max` : la part des trois appels, arrondie, doit tomber à 2.
     expect(wait).toBeLessThanOrEqual(MINUTE + MINUTE / 3);
-    // Une autre adresse a son propre compteur.
     expect(limiter.hit('autre', start + 3)).toBe(0);
   });
 
@@ -27,9 +25,7 @@ describe('limitation du débit', () => {
     const limiter = new SlidingWindowLimiter(10, MINUTE);
     const start = 10 * MINUTE;
     for (let i = 0; i < 10; i++) limiter.hit('ip', start + 50_000);
-    // Début de la fenêtre suivante : les 10 appels d'avant pèsent encore 9,8, soit 10 appels.
     expect(limiter.hit('ip', start + MINUTE + 1_000)).toBeGreaterThan(0);
-    // À mi-fenêtre, ils ne pèsent plus que 5 : cinq de plus passent, pas six.
     const half = start + MINUTE + MINUTE / 2;
     const passed = [0, 1, 2, 3, 4, 5].filter(() => limiter.hit('ip', half) === 0);
     expect(passed).toHaveLength(5);
@@ -39,7 +35,6 @@ describe('limitation du débit', () => {
     const boundary = 10 * MINUTE;
     for (let before = 0; before <= 5; before += 1) {
       const limiter = new SlidingWindowLimiter(5, MINUTE);
-      // Six appels en une seconde : `before` juste avant la bascule, les autres juste après.
       const times = Array.from({ length: 6 }, (_, i) =>
         i < before ? boundary - 600 + i : boundary + 100 + i,
       );

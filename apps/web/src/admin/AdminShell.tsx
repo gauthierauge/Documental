@@ -6,15 +6,11 @@ import { Notice } from '@/ui/Notice';
 import { type AdminMeta, MetaContext } from './meta';
 import './admin.css';
 
-// La mise en page du panel admin : son menu latéral et la description du panel (/api/admin/meta,
-// donc admin.config.ts et le rôle), partagée par chaque écran. L'écran affiché est `children`.
-
 export function AdminShell({ children }: { children: ReactNode }) {
   const path = usePath();
   const [meta, setMeta] = useState<AdminMeta | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // oxlint-disable react/exhaustive-deps -- la description ne change qu'avec la session.
   useEffect(() => {
     api<AdminMeta>('/admin/meta')
       .then(setMeta)
@@ -24,7 +20,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
         else setError(e instanceof Error ? e.message : 'Erreur');
       });
   }, []);
-  // oxlint-enable react/exhaustive-deps
 
   if (error) return <EmptyState title={error} action={<Link href="/">Retour au site</Link>} />;
   if (!meta) return <EmptyState title="Chargement…" />;

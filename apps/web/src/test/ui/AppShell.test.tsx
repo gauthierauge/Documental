@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { AppShell } from '@/ui/AppShell';
 import { NavLink } from '@/ui/NavLink';

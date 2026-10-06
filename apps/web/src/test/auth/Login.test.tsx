@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Login } from '@/auth/Login';
 
@@ -37,7 +36,6 @@ describe('Écrans de connexion', () => {
 
   it('un refus 429 dit quand réessayer', async () => {
     const message = 'Connexion : trop de tentatives, réessayez dans 1 minute.';
-    // Le message sous les deux noms, `error` (Direct) et `detail` (Clean, DDD) : le test vaut partout.
     const refused = {
       type: '/problems/too-many-requests',
       title: 'Trop de requêtes',

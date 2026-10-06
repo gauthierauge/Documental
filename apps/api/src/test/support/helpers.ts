@@ -5,13 +5,10 @@ import { testDatabase } from './database';
 import { MemoryMailer } from '@/mail/mailer';
 
 export interface TestAppOptions {
-  /** Variables d'environnement en plus de NODE_ENV=test. */
   env?: Record<string, string>;
-  /** Pour lire le journal des requêtes, muet sinon. */
   log?: LogWriter;
 }
 
-/** Une application complète en mémoire : aucun serveur, aucune base à installer. */
 export async function testApp(options: TestAppOptions = {}) {
   const env = readEnv({ NODE_ENV: 'test', ...options.env });
   const database = await testDatabase();
@@ -26,7 +23,6 @@ export async function testApp(options: TestAppOptions = {}) {
   return { app: createApp(deps), deps };
 }
 
-/** Une configuration de production complète et valide : chaque module y ajoute ses variables. */
 export const PRODUCTION_ENV: Record<string, string> = {
   NODE_ENV: 'production',
   DATABASE_URL: 'postgres://app@base.atelier.test:5432/app',

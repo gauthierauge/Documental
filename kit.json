@@ -6,7 +6,7 @@
   "auth": "motdepasse",
   "modules": ["docker", "emails"],
   "admin": true,
-  "contenus": ["Clients"],
+  "contenus": [],
   "theme": "tech",
   "mode": "systeme",
   "layout": "sidebar-topbar",

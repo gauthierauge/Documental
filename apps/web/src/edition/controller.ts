@@ -2,10 +2,11 @@ import type {
   CommittedOperation,
   DocumentContent,
   OperationsSince,
+  RemoteCursor,
   ServerMessage,
   SubmissionResult,
 } from '@documental/contracts/edition';
-import { diff, type TextOperation } from '@documental/contracts/text-operation';
+import { diff, type TextOperation, transformIndex } from '@documental/contracts/text-operation';
 import { api, ApiError } from '@/api';
 import { EditionSession, OutOfSyncError, type SessionState } from '@/edition/session';
 
@@ -19,6 +20,8 @@ export type EditionStatus =
 export interface EditionEvents {
   status(status: EditionStatus, message?: string): void;
   remote(text: string, operations: TextOperation[]): void;
+  access?(canEdit: boolean): void;
+  cursors?(cursors: RemoteCursor[]): void;
 }
 
 export type EditionStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -39,6 +42,9 @@ export interface ControllerOptions {
   delayMs?: number;
   retryMs?: readonly number[];
   ackTimeoutMs?: number;
+  cursorDelayMs?: number;
+  heartbeatMs?: number;
+  now?: () => number;
 }
 
 const FATAL = new Set([400, 401, 403, 404, 409, 413]);
@@ -71,6 +77,13 @@ export class EditionController {
   private sentId: string | null = null;
   private ackTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private cursorTimer: ReturnType<typeof setTimeout> | null = null;
+  private heartbeat: ReturnType<typeof setInterval> | null = null;
+  private selection = { start: 0, end: 0 };
+  private readonly others = new Map<string, RemoteCursor & { seen: number }>();
+  private readonly cursorDelayMs: number;
+  private readonly heartbeatMs: number;
+  private readonly now: () => number;
   private readonly storage: EditionStorage | null;
   private readonly connect: Connect | null;
   private readonly delayMs: number;
@@ -88,6 +101,9 @@ export class EditionController {
     this.delayMs = options.delayMs ?? (this.connect ? 100 : 400);
     this.retryMs = options.retryMs ?? RETRY_MS;
     this.ackTimeoutMs = options.ackTimeoutMs ?? 10_000;
+    this.cursorDelayMs = options.cursorDelayMs ?? 80;
+    this.heartbeatMs = options.heartbeatMs ?? 10_000;
+    this.now = options.now ?? Date.now;
   }
 
   get pending(): boolean {
@@ -131,7 +147,9 @@ export class EditionController {
     const session = this.session;
     if (!session || this.stopped) return;
     const grown = Math.max(0, text.length - session.text.length);
-    session.local(diff(session.text, text, caret - grown));
+    const operation = diff(session.text, text, caret - grown);
+    session.local(operation);
+    this.shiftCursors(operation);
     this.save();
     if (this.connect && !this.live) {
       this.events.status('hors-ligne');
@@ -139,6 +157,15 @@ export class EditionController {
     }
     if (!this.inFlight && !this.sentId) this.events.status('enregistrement');
     this.schedule(this.delayMs);
+  }
+
+  moveCursor(start: number, end: number): void {
+    this.selection = { start: Math.min(start, end), end: Math.max(start, end) };
+    if (this.cursorTimer || !this.live) return;
+    this.cursorTimer = setTimeout(() => {
+      this.cursorTimer = null;
+      this.sendCursor();
+    }, this.cursorDelayMs);
   }
 
   retryNow(): void {
@@ -152,12 +179,15 @@ export class EditionController {
 
   stop(): void {
     this.stopped = true;
-    for (const timer of [this.timer, this.ackTimer, this.reconnectTimer]) {
+    for (const timer of [this.timer, this.ackTimer, this.reconnectTimer, this.cursorTimer]) {
       if (timer) clearTimeout(timer);
     }
+    if (this.heartbeat) clearInterval(this.heartbeat);
     this.timer = null;
     this.ackTimer = null;
     this.reconnectTimer = null;
+    this.cursorTimer = null;
+    this.heartbeat = null;
     const socket = this.socket;
     this.socket = null;
     if (socket) {
@@ -188,6 +218,10 @@ export class EditionController {
       this.socket = null;
       this.live = false;
       this.sentId = null;
+      if (this.heartbeat) clearInterval(this.heartbeat);
+      this.heartbeat = null;
+      this.others.clear();
+      this.emitCursors();
       if (this.ackTimer) clearTimeout(this.ackTimer);
       this.ackTimer = null;
       if (this.stopped) return;
@@ -214,6 +248,33 @@ export class EditionController {
       this.failures = 0;
       this.events.status(session.pending ? 'enregistrement' : 'enregistre');
       this.schedule(0);
+      this.sendCursor();
+      if (this.heartbeat) clearInterval(this.heartbeat);
+      this.heartbeat = setInterval(() => this.beat(), this.heartbeatMs);
+      return;
+    }
+    if (message.type === 'curseur') {
+      const length = session.text.length;
+      this.others.set(message.key, {
+        key: message.key,
+        user: message.user,
+        start: Math.min(message.start, length),
+        end: Math.min(message.end, length),
+        seen: this.now(),
+      });
+      this.emitCursors();
+      return;
+    }
+    if (message.type === 'depart') {
+      if (this.others.delete(message.key)) this.emitCursors();
+      return;
+    }
+    if (message.type === 'arrivee') {
+      this.sendCursor();
+      return;
+    }
+    if (message.type === 'droits') {
+      this.events.access?.(message.canEdit);
       return;
     }
     if (message.type === 'erreur') {
@@ -235,6 +296,11 @@ export class EditionController {
     }
     if (applied) {
       this.events.remote(session.text, [applied]);
+      this.shiftCursors(applied);
+      this.selection = {
+        start: transformIndex(this.selection.start, applied),
+        end: transformIndex(this.selection.end, applied),
+      };
     } else {
       this.sentId = null;
       if (this.ackTimer) clearTimeout(this.ackTimer);
@@ -243,6 +309,42 @@ export class EditionController {
     this.save();
     if (session.pending) this.schedule(this.delayMs);
     else if (this.live) this.events.status('enregistre');
+  }
+
+  private sendCursor(): void {
+    if (!this.socket || !this.live || this.stopped) return;
+    const length = this.session?.text.length ?? 0;
+    const start = Math.min(this.selection.start, length);
+    const end = Math.min(this.selection.end, length);
+    this.socket.send(JSON.stringify({ type: 'curseur', start, end }));
+  }
+
+  private beat(): void {
+    this.sendCursor();
+    const limit = this.now() - this.heartbeatMs * 3;
+    let changed = false;
+    for (const [key, cursor] of this.others) {
+      if (cursor.seen < limit) {
+        this.others.delete(key);
+        changed = true;
+      }
+    }
+    if (changed) this.emitCursors();
+  }
+
+  private shiftCursors(operation: TextOperation): void {
+    if (this.others.size === 0) return;
+    for (const cursor of this.others.values()) {
+      cursor.start = transformIndex(cursor.start, operation);
+      cursor.end = transformIndex(cursor.end, operation);
+    }
+    this.emitCursors();
+  }
+
+  private emitCursors(): void {
+    this.events.cursors?.(
+      [...this.others.values()].map(({ key, user, start, end }) => ({ key, user, start, end })),
+    );
   }
 
   private schedule(ms: number): void {

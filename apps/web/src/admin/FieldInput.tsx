@@ -3,9 +3,6 @@ import { type FieldConfig, formatMontant, parseMontant } from '@documental/contr
 import { api } from '@/api';
 import { Checkbox, type ControlProps, Field, Input, Select, Textarea } from '@/ui/Field';
 
-// Un champ de formulaire selon son type. Les montants se saisissent en euros et voyagent
-// en centimes ; les liens proposent les lignes du contenu lié.
-
 interface Props {
   field: FieldConfig;
   value: unknown;
@@ -53,12 +50,9 @@ function toText(value: unknown): string {
 
 function MoneyInput({ value, disabled, onChange, control }: Props & { control: ControlProps }) {
   const [text, setText] = useState(() => toText(value));
-  // La valeur arrive après le chargement de la fiche : on la reprend si elle diffère de la saisie.
-  // oxlint-disable react/exhaustive-deps -- seule la valeur externe compte ici.
   useEffect(() => {
     if (parseMontant(text) !== value && typeof value === 'number') setText(toText(value));
   }, [value]);
-  // oxlint-enable react/exhaustive-deps
   return (
     <Input
       {...control}

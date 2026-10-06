@@ -26,8 +26,22 @@
     {
       "idx": 3,
       "version": "7",
-      "when": 1791208791119,
-      "tag": "0003_acoustic_puppet_master",
+      "when": 1791207607075,
+      "tag": "0003_puzzling_hellfire_club",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791209033012,
+      "tag": "0004_lean_mimic",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791277081656,
+      "tag": "0005_fancy_maddog",
       "breakpoints": true
     }
   ]

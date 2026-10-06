@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { navigate } from '@/router';
+import { AppearanceSwitch } from '@/ui/AppearanceSwitch';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Field, Input } from '@/ui/Field';
@@ -257,6 +258,9 @@ export function Account() {
       <Profile name={user.name} />
       <TwoFactor enabled={user.twoFactorEnabled} admin={user.role === 'admin'} />
       <ChangePassword />
+      <Card title="Apparence">
+        <AppearanceSwitch />
+      </Card>
       <div className="ui-actions">
         <Button onClick={signOut}>Se déconnecter</Button>
       </div>

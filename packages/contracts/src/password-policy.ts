@@ -1,9 +1,3 @@
-// Règles de mot de passe, d'après le NIST SP 800-63B : une longueur minimale, une longueur
-// maximale large (les phrases de passe sont bienvenues), aucune règle de composition imposée
-// (majuscule, chiffre, symbole…), et le refus des mots de passe que tout le monde essaie.
-// Partagé : l'API l'applique à chaque définition de mot de passe, l'écran l'affiche avant l'envoi.
-// La vérification dans les fuites connues (Have I Been Pwned) est une option de l'API : PASSWORD_HIBP.
-
 export const PASSWORD_MIN = 12;
 export const PASSWORD_MAX = 128;
 
@@ -19,7 +13,6 @@ const LEET: Record<string, string> = {
   '7': 't',
 };
 
-/** Le cœur d'un mot de passe : sans accents, sans ce qui l'entoure, chiffres « l33t » remis en lettres. */
 function skeleton(value: string): string {
   return value
     .normalize('NFD')
@@ -30,7 +23,6 @@ function skeleton(value: string): string {
     .replace(/[^a-z]/g, '');
 }
 
-/** Mots de passe courants qu'aucune autre règle n'attrape (suites de clavier entrelacées). */
 const COMMON = new Set([
   '1q2w3e4r5t6y',
   '1q2w3e4r5t6y7u',
@@ -64,11 +56,6 @@ const COMMON = new Set([
   '123456abcdef',
 ]);
 
-/**
- * Mots que l'on retrouve au cœur des mots de passe devinés en premier, une fois retirés les
- * chiffres et symboles ajoutés autour (« Motdepasse2026! », « P@ssw0rd1234 »). Le nom de
- * l'application en fait partie : c'est le premier mot qu'un attaquant essaie.
- */
 const BASE_WORDS = new Set(
   [
     'documental',
@@ -135,7 +122,6 @@ const BASE_WORDS = new Set(
   ].map(skeleton),
 );
 
-/** Suites de touches ou de caractères : un mot de passe qui en est un morceau est trivial. */
 const SEQUENCES = [
   '01234567890123456789012345678901234567890',
   'abcdefghijklmnopqrstuvwxyz',
@@ -145,12 +131,10 @@ const SEQUENCES = [
 ].flatMap((s) => [s, [...s].reverse().join('')]);
 
 function isTrivial(lower: string): boolean {
-  // Un motif répété : « aaaaaaaaaaaa », « azerazerazer », « 123123123123 ».
   if (/^(.+?)\1+$/su.test(lower)) return true;
   return SEQUENCES.some((s) => s.includes(lower));
 }
 
-/** null si le mot de passe convient, sinon la raison, à afficher telle quelle. */
 export function passwordProblem(password: string): string | null {
   if (password.length < PASSWORD_MIN) return `Au moins ${PASSWORD_MIN} caractères.`;
   if (password.length > PASSWORD_MAX) return `Au plus ${PASSWORD_MAX} caractères.`;
