@@ -19,7 +19,8 @@ export function loadSession(auth: Auth) {
   return createMiddleware(async (c, next) => {
     const result = await auth.api.getSession({ headers: c.req.raw.headers });
     const u = result?.user as (SessionUser & Record<string, unknown>) | undefined;
-    c.set('user', u ? { id: u.id, email: u.email, name: u.name, role: u.role } : null);
+    const active = u && !u.blockedAt;
+    c.set('user', active ? { id: u.id, email: u.email, name: u.name, role: u.role } : null);
     await next();
   });
 }

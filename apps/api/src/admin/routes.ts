@@ -374,6 +374,33 @@ export function adminRoutes(deps: Deps, auth: Auth) {
       return c.json({ ok: true });
     });
 
+    r.post('/comptes/:id/blocage', strongAdmin, async (c) => {
+      const user = currentUser(c);
+      const parsed = z
+        .object({ bloque: z.boolean() })
+        .strict()
+        .safeParse(await readJson(c.req.raw));
+      if (!parsed.success) return c.json({ error: 'Saisie invalide' }, 400);
+      const target = await accounts.get(c.req.param('id'));
+      if (!target) throw new HTTPException(404, { message: 'Compte introuvable' });
+      const block = parsed.data.bloque;
+      if (block && target.id === user.id)
+        return c.json({ error: 'Impossible de bloquer votre propre compte' }, 409);
+      if (block && target.role === 'admin' && !target.blockedAt) {
+        if ((await accounts.activeAdminCount()) <= 1)
+          return c.json({ error: 'Il faut au moins un admin actif' }, 409);
+      }
+      if (block === Boolean(target.blockedAt)) return c.json({ ok: true });
+      await accounts.setBlocked(target.id, block);
+      await audit.record(user, {
+        action: block ? 'blocage' : 'deblocage',
+        entity: 'comptes',
+        entityId: target.id,
+        summary: block ? `a bloqué ${target.email}` : `a débloqué ${target.email}`,
+      });
+      return c.json({ ok: true });
+    });
+
     r.delete('/comptes/:id', strongAdmin, async (c) => {
       const user = currentUser(c);
       const target = await accounts.get(c.req.param('id'));

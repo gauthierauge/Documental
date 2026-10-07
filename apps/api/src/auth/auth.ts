@@ -17,6 +17,8 @@ const DEV_SECRET = 'secret-de-developpement-uniquement-ne-pas-utiliser';
 export const ROLES = ['admin', 'editeur', 'lecteur'] as const;
 export type Role = (typeof ROLES)[number];
 
+export const BLOCKED_MESSAGE = 'Ce compte est bloqué : contactez un admin.';
+
 export const RESET_LINK_HOURS = 1;
 export const INVITATION_LINK_HOURS = 72;
 
@@ -73,6 +75,26 @@ export function createAuth(deps: Pick<Deps, 'db' | 'env' | 'mailer'>) {
     user: {
       additionalFields: {
         role: { type: 'string', required: false, defaultValue: 'lecteur', input: false },
+        blockedAt: { type: 'date', required: false, input: false },
+      },
+    },
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (created) => {
+            const [owner] = await db
+              .select({ blockedAt: schema.user.blockedAt })
+              .from(schema.user)
+              .where(eq(schema.user.id, created.userId))
+              .limit(1);
+            if (owner?.blockedAt) {
+              throw new APIError('FORBIDDEN', {
+                message: BLOCKED_MESSAGE,
+                code: 'COMPTE_BLOQUE',
+              });
+            }
+          },
+        },
       },
     },
     rateLimit: {

@@ -39,6 +39,7 @@ export function errorMessage(error: {
     return 'Code incorrect.';
   if (error.code === 'INVALID_TWO_FACTOR_COOKIE') return 'Délai dépassé : reconnectez-vous.';
   if (error.code === 'DEUXFA_OBLIGATOIRE' && error.message) return error.message;
+  if (error.code === 'COMPTE_BLOQUE') return 'Ce compte est bloqué : contactez un admin.';
   if (error.code === 'NOM_INVALIDE' && error.message) return error.message;
   if (error.status === 429) return tooManyMessage(error, null);
   if (error.status === 401) return 'Adresse e-mail ou mot de passe incorrect.';

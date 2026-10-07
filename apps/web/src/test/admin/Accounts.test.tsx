@@ -19,8 +19,30 @@ const meta: AdminMeta = {
 };
 
 const accounts = [
-  { id: 'u1', email: 'claire@exemple.fr', name: 'Claire', role: 'admin', strongFactor: 'Passkey' },
-  { id: 'u2', email: 'paul@exemple.fr', name: 'Paul', role: 'editeur', strongFactor: null },
+  {
+    id: 'u1',
+    email: 'claire@exemple.fr',
+    name: 'Claire',
+    role: 'admin',
+    strongFactor: 'Passkey',
+    blockedAt: null,
+  },
+  {
+    id: 'u2',
+    email: 'paul@exemple.fr',
+    name: 'Paul',
+    role: 'editeur',
+    strongFactor: null,
+    blockedAt: null,
+  },
+  {
+    id: 'u3',
+    email: 'zoe@exemple.fr',
+    name: 'Zoé',
+    role: 'lecteur',
+    strongFactor: null,
+    blockedAt: '2026-10-05T10:00:00.000Z',
+  },
 ];
 
 function respond(body: unknown, status = 200) {
@@ -49,8 +71,8 @@ describe('Comptes', () => {
     renderAccounts();
     expect(await screen.findByText('paul@exemple.fr')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Rôle de claire@exemple.fr' })).toBeDisabled();
-    expect(screen.getAllByRole('button', { name: 'Retirer l’accès' })).toHaveLength(1);
-    expect(screen.getByText('aucun')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Retirer l’accès' })).toHaveLength(2);
+    expect(screen.getAllByText('aucun')).toHaveLength(2);
 
     fireEvent.change(screen.getByLabelText('Adresse e-mail'), {
       target: { value: 'lea@exemple.fr' },
@@ -66,7 +88,7 @@ describe('Comptes', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Renvoyer un lien' })[1] as HTMLElement);
     expect(await screen.findByText('Lien d’accès renvoyé à paul@exemple.fr.')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Retirer l’accès' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Retirer l’accès' })[0] as HTMLElement);
     expect(await screen.findByText('Accès retiré à paul@exemple.fr.')).toBeInTheDocument();
     await waitFor(() =>
       expect(
@@ -104,5 +126,33 @@ describe('Comptes', () => {
     );
     renderAccounts();
     expect(await screen.findByText('Ajoutez un facteur fort')).toBeInTheDocument();
+  });
+
+  it('bloque et débloque un compte, jamais le sien', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) =>
+      init?.method ? respond({ ok: true }) : respond({ accounts }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderAccounts();
+    expect(await screen.findByText('Bloqué')).toBeInTheDocument();
+    expect(screen.getAllByText('Actif')).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: 'Bloquer claire@exemple.fr' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bloquer paul@exemple.fr' }));
+    expect(
+      await screen.findByText('paul@exemple.fr est bloqué : ses sessions sont fermées.'),
+    ).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/admin/comptes/u2/blocage',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ bloque: true }) }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Débloquer zoe@exemple.fr' }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/admin/comptes/u3/blocage',
+        expect.objectContaining({ body: JSON.stringify({ bloque: false }) }),
+      ),
+    );
   });
 });

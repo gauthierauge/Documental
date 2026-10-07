@@ -50,6 +50,13 @@
       "when": 1791289487745,
       "tag": "0006_nappy_landau",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791359682029,
+      "tag": "0007_petite_ricochet",
+      "breakpoints": true
     }
   ]
 }

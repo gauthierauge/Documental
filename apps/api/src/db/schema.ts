@@ -24,6 +24,7 @@ export const user = pgTable('user', {
   image: text('image'),
   role: text('role').notNull().default('lecteur'),
   twoFactorEnabled: boolean('two_factor_enabled').notNull().default(false),
+  blockedAt: timestamp('blocked_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .$defaultFn(() => new Date()),

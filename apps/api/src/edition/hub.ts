@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DOCUMENT_CONTENT_MAX, type ServerMessage } from '@documental/contracts/edition';
 import { isValidOperation, type TextOperation } from '@documental/contracts/text-operation';
+import { ACCOUNT_CHANNEL } from '@/admin/users';
 import type { SessionUser } from '@/auth/middleware';
 import type { Listen } from '@/db/client';
 import { ACCESS_CHANNEL, accessTo } from '@/documents/access';
@@ -81,6 +82,7 @@ export class EditionHub {
       this.listen(EDITION_CHANNEL, (id) => this.changed(id)),
       this.listen(ACCESS_CHANNEL, (id) => this.rightsChanged(id)),
       this.listen(CURSOR_CHANNEL, (payload) => this.cursorMoved(payload)),
+      this.listen(ACCOUNT_CHANNEL, (userId) => this.blocked(userId)),
     ]);
     await this.listening;
     const room = this.rooms.get(documentId) ?? { members: new Map(), queue: Promise.resolve() };
@@ -150,6 +152,20 @@ export class EditionHub {
         message: error.message,
         id: parsed.id,
       });
+    }
+  }
+
+  private blocked(userId: string): void {
+    for (const room of this.rooms.values()) {
+      for (const member of room.members.values()) {
+        if (member.connection.user.id !== userId) continue;
+        member.connection.send({
+          type: 'erreur',
+          status: 401,
+          message: 'Session terminée : ce compte est bloqué.',
+        });
+        member.connection.close(4401, 'Compte bloqué');
+      }
     }
   }
 
