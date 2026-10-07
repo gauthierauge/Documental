@@ -12,7 +12,7 @@ export const PERMISSIONS_POLICY: NonNullable<SecureHeadersOptions['permissionsPo
   hid: [],
   idleDetection: [],
   magnetometer: [],
-  microphone: [],
+  microphone: ['self'],
   midi: [],
   payment: [],
   serial: [],

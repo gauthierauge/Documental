@@ -3,6 +3,7 @@ import {
   bigint,
   bigserial,
   boolean,
+  customType,
   index,
   integer,
   jsonb,
@@ -195,6 +196,60 @@ export const documentOperation = pgTable(
   (t) => [
     unique('document_operation_revision_unique').on(t.documentId, t.revision),
     unique('document_operation_id_unique').on(t.documentId, t.operationId),
+  ],
+);
+
+const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({
+  dataType: () => 'bytea',
+});
+
+export const documentFile = pgTable(
+  'document_file',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    documentId: text('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    mime: text('mime').notNull(),
+    size: integer('size').notNull(),
+    sha256: text('sha256').notNull(),
+    usage: text('usage', { enum: ['attachment', 'inline'] })
+      .notNull()
+      .default('attachment'),
+    bytes: bytea('bytes').notNull(),
+    createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index('document_file_document_idx').on(t.documentId),
+    unique('document_file_name_unique').on(t.documentId, t.name),
+  ],
+);
+
+export const documentMessage = pgTable(
+  'document_message',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    clientId: text('client_id').notNull(),
+    documentId: text('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    authorId: text('author_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    text: text('text').notNull(),
+    sentAt: timestamp('sent_at', { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index('document_message_document_idx').on(t.documentId, t.id),
+    unique('document_message_client_unique').on(t.documentId, t.authorId, t.clientId),
   ],
 );
 

@@ -115,3 +115,8 @@
     opacity: 0.2;
   }
 }
+
+.ed-zone-depot .ed-texte {
+  border-color: var(--couleur-accent);
+  background: var(--couleur-accent-doux);
+}

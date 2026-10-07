@@ -1,6 +1,6 @@
 {
-  "id": "5227623f-d598-4f01-9fc8-bd41be2fa6f6",
-  "prevId": "8f111f5f-106d-47b1-b2e1-72ba92dddd9a",
+  "id": "7a8ba8c9-8d26-430e-bcd5-c2fa51472500",
+  "prevId": "2403d7f2-eb98-45ea-8936-ffa6b093d9f9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -580,6 +580,114 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.document_message": {
+      "name": "document_message",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "document_message_document_idx": {
+          "name": "document_message_document_idx",
+          "columns": [
+            {
+              "expression": "document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "document_message_document_id_document_id_fk": {
+          "name": "document_message_document_id_document_id_fk",
+          "tableFrom": "document_message",
+          "tableTo": "document",
+          "columnsFrom": [
+            "document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "document_message_author_id_user_id_fk": {
+          "name": "document_message_author_id_user_id_fk",
+          "tableFrom": "document_message",
+          "tableTo": "user",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "document_message_client_unique": {
+          "name": "document_message_client_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "document_id",
+            "author_id",
+            "client_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.document_operation": {
       "name": "document_operation",
       "schema": "",
@@ -930,6 +1038,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "blocked_at": {
+          "name": "blocked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

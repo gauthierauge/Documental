@@ -6,6 +6,7 @@ const httpSchema = {
   RATE_LIMIT_WINDOW_S: z.coerce.number().int().positive().max(3600).default(60),
   TRUST_PROXY: z.enum(['aucun', 'cloudflare', 'x-forwarded-for']).default('aucun'),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(1).max(10).default(1),
+  UPLOAD_MAX_MB: z.coerce.number().int().positive().max(100).default(30),
   REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(300_000).default(15_000),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).max(60_000).default(7_000),
 };
@@ -40,6 +41,19 @@ const schema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
+  WEBRTC_STUN_URL: z.string().default('stun:stun.cloudflare.com:3478'),
+  WEBRTC_TURN_URL: z
+    .string()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  WEBRTC_TURN_USERNAME: z
+    .string()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  WEBRTC_TURN_CREDENTIAL: z
+    .string()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
 });
 
 export type Env = z.infer<typeof schema>;

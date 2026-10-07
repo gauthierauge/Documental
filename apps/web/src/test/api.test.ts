@@ -35,3 +35,23 @@ describe('api', () => {
     });
   });
 });
+
+describe('Envoi d’un formulaire', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('laisse le navigateur poser le content-type et sa frontière', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const body = new FormData();
+    body.set('fichier', new File([new Uint8Array([1])], 'a.pdf'));
+    await api('/documents/fichiers/d1', { method: 'POST', body });
+    const call = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(call[1].headers).toEqual({});
+  });
+});

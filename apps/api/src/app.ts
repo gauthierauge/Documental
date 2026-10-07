@@ -20,6 +20,7 @@ import { betterAuthTooMany } from './http/rate-limit';
 import { adminRoutes, publicSettingsRoute } from './admin/routes';
 import { documentRoutes } from '@/documents/routes';
 import { editionRoutes } from '@/edition/routes';
+import { communicationConfigRoutes, communicationRoutes } from '@/communication/routes';
 import { invitationRoutes } from '@/invitations/routes';
 
 export interface Deps {
@@ -70,7 +71,10 @@ export function createApp(deps: Deps) {
     }),
   );
   app.use('/api/*', requestTimeout(env.REQUEST_TIMEOUT_MS));
-  const bodyLimitsByPath: Record<string, number> = { '/api/documents/': 2 * 1024 * 1024 };
+  const bodyLimitsByPath: Record<string, number> = {
+    '/api/documents/': 2 * 1024 * 1024,
+    '/api/documents/fichiers/': env.UPLOAD_MAX_MB * 1024 * 1024,
+  };
   app.use('/api/*', bodyLimits(env.BODY_MAX_KB * 1024, bodyLimitsByPath));
 
   if (env.SECURITY_CONTACT) {
@@ -93,6 +97,8 @@ export function createApp(deps: Deps) {
   api.route('/reglages/publics', publicSettingsRoute(deps));
   api.route('/documents', documentRoutes(deps));
   api.route('/documents', editionRoutes(deps));
+  api.route('/documents', communicationRoutes(deps));
+  api.route('/communication', communicationConfigRoutes(deps));
   api.route('/documents', invitationRoutes(deps));
 
   app.route('/api', api);

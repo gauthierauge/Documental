@@ -7,7 +7,7 @@ describe('en-têtes de sécurité', () => {
     const policy = response.headers.get('permissions-policy') ?? '';
     for (const feature of [
       'camera=()',
-      'microphone=()',
+      'microphone=(self)',
       'geolocation=()',
       'payment=()',
       'usb=()',
