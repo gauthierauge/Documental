@@ -75,6 +75,7 @@
   margin-inline-start: var(--espace-2);
   border-radius: var(--rayon-rond);
   background: var(--couleur-succes);
+  box-shadow: 0 0 0 var(--trait-epais) color-mix(in oklch, var(--couleur-succes) 25%, transparent);
   vertical-align: middle;
 }
 
@@ -96,9 +97,10 @@
   overflow-y: auto;
   border: var(--trait-fin) solid var(--carte-bordure);
   border-radius: var(--carte-rayon);
-  background: var(--carte-fond);
+  background: var(--couleur-surface-elevee);
   color: var(--carte-texte);
   box-shadow: var(--ombre-flottante);
+  overscroll-behavior: contain;
 }
 
 .inv-popover[hidden] {
@@ -116,6 +118,8 @@
   margin: 0;
   overflow: hidden;
   font: var(--typo-titre-3);
+  font-size: var(--taille-texte-grand);
+  letter-spacing: var(--typo-titre-3-letter-spacing);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

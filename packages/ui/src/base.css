@@ -8,11 +8,25 @@ html {
   background: var(--couleur-fond);
   color: var(--couleur-texte);
   font: var(--typo-corps);
+  accent-color: var(--couleur-accent);
+  scrollbar-color: var(--couleur-bordure-forte) transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Au pointeur précis (souris, pavé tactile), les contrôles se resserrent : 40 px, au-dessus du
+   minimum WCAG 2.5.8. Au doigt, la cible reste celle du jeton (44 px). */
+@media (pointer: fine) {
+  :root {
+    --taille-cible: 2.5rem;
+  }
 }
 
 body {
+  min-height: 100dvh;
   margin: 0;
 }
 
@@ -20,22 +34,37 @@ h1,
 h2,
 h3 {
   margin: 0;
+  text-wrap: balance;
 }
 
 h1 {
   font: var(--typo-titre-1);
+  letter-spacing: var(--typo-titre-1-letter-spacing);
 }
 
 h2 {
   font: var(--typo-titre-2);
+  letter-spacing: var(--typo-titre-2-letter-spacing);
 }
 
 h3 {
   font: var(--typo-titre-3);
+  letter-spacing: var(--typo-titre-3-letter-spacing);
+}
+
+p,
+li {
+  text-wrap: pretty;
 }
 
 a {
   color: var(--couleur-lien);
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: var(--trait-epais);
 }
 
 code,
@@ -52,9 +81,29 @@ textarea {
   color: inherit;
 }
 
+time {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--couleur-accent-doux);
+  color: var(--couleur-accent-sur-doux);
+}
+
 :focus-visible {
   outline: var(--focus-epaisseur) solid var(--couleur-focus);
   outline-offset: var(--focus-decalage);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .sr-only {

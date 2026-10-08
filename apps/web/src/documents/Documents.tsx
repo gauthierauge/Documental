@@ -78,6 +78,16 @@ export function Documents({ folderId }: { folderId: string | null }) {
       {listing && listing.path.length > 0 && <Breadcrumb path={listing.path} current />}
       {error && <Notice tone="danger">{error}</Notice>}
 
+      {!listing && !error && (
+        <div className="ui-squelette" aria-busy="true">
+          <span className="sr-only">Chargement des documents…</span>
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </div>
+      )}
+
       {listing && (
         <div className="ui-actions">
           {listing.canCreate && (

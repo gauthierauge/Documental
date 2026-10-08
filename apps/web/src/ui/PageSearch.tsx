@@ -53,7 +53,7 @@ export function PageSearch({ pages }: { pages: NavItem[] }) {
           {searching ? found : ''}
         </p>
         {searching && (
-          <div className="ui-recherche-resultats">
+          <div className="ui-recherche-resultats ui-flottant">
             {results.length ? (
               <NavList pages={results} onNavigate={clear} />
             ) : (

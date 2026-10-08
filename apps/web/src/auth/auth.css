@@ -25,13 +25,19 @@
   min-height: 100dvh;
   padding: var(--espace-5) var(--espace-4);
   place-items: center;
-  background: var(--couleur-fond);
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 50% 0%,
+      color-mix(in oklch, var(--couleur-accent-doux) 80%, transparent),
+      transparent
+    ),
+    var(--couleur-fond);
 }
 
 .auth-cadre {
   display: flex;
   flex-direction: column;
-  gap: var(--espace-4);
+  gap: var(--espace-5);
   width: min(100%, var(--largeur-formulaire));
 }
 
@@ -40,10 +46,23 @@
 }
 
 .auth-marque {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-2);
   margin: 0;
   color: var(--couleur-texte);
   font: var(--typo-titre-3);
-  text-align: center;
+  letter-spacing: var(--typo-titre-3-letter-spacing);
+}
+
+.auth-marque::before {
+  content: '';
+  flex: none;
+  width: var(--espace-5);
+  height: var(--espace-5);
+  background: var(--couleur-accent);
+  mask: var(--icone-document) center / contain no-repeat;
 }
 
 .auth-carte {
@@ -52,9 +71,28 @@
   border-radius: var(--carte-rayon);
   background: var(--carte-fond);
   color: var(--carte-texte);
-  box-shadow: var(--carte-ombre);
+  box-shadow: var(--ombre-flottante);
 }
 
 .auth-carte .ui-page-etroite {
   max-width: none;
+}
+
+.auth-carte h1 {
+  font: var(--typo-titre-2);
+  letter-spacing: var(--typo-titre-2-letter-spacing);
+}
+
+.auth-carte .ui-formulaire > .ui-bouton {
+  align-self: stretch;
+}
+
+.auth-carte p {
+  margin: 0;
+}
+
+@media (max-width: 30rem) {
+  .auth-carte {
+    padding: var(--espace-5) var(--espace-4);
+  }
 }

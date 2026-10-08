@@ -115,7 +115,7 @@
           "color": {
             "colorSpace": "srgb",
             "components": [0, 0, 0],
-            "alpha": 0.4,
+            "alpha": 0.2,
             "hex": "#000000"
           },
           "offsetX": {
@@ -127,11 +127,35 @@
             "unit": "px"
           },
           "blur": {
-            "value": 3,
+            "value": 2,
             "unit": "px"
           },
           "spread": {
             "value": 0,
+            "unit": "px"
+          }
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.15,
+            "hex": "#000000"
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 2,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 6,
+            "unit": "px"
+          },
+          "spread": {
+            "value": -1,
             "unit": "px"
           }
         }
@@ -144,6 +168,30 @@
           "color": {
             "colorSpace": "srgb",
             "components": [0, 0, 0],
+            "alpha": 0.3,
+            "hex": "#000000"
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 4,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 8,
+            "unit": "px"
+          },
+          "spread": {
+            "value": -2,
+            "unit": "px"
+          }
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
             "alpha": 0.5,
             "hex": "#000000"
           },
@@ -152,15 +200,15 @@
             "unit": "px"
           },
           "offsetY": {
-            "value": 8,
+            "value": 16,
             "unit": "px"
           },
           "blur": {
-            "value": 24,
+            "value": 32,
             "unit": "px"
           },
           "spread": {
-            "value": 0,
+            "value": -8,
             "unit": "px"
           }
         }
