@@ -38,6 +38,12 @@ Thème Tech, en clair et en sombre : le mode suit celui du système.
 - Les composants de `apps/web/src/ui/` (boutons, champs, cartes, tableaux, pastilles, coquille) ne
   lisent que ces variables. `data-theme="clair"` ou `"sombre"` sur `<html>` force un mode, comme
   le réglage « Apparence » de « Mon compte ».
+- Les pictogrammes sont des masques CSS (`packages/ui/src/icones.css`, variables `--icone-…`) : ils
+  prennent la couleur du texte, donc celle du thème.
+- Densité : au pointeur précis (souris), les contrôles font 40 px ; au doigt, la cible reste celle
+  du jeton `taille-cible` (44 px). La règle est dans `packages/ui/src/base.css`.
+- Mouvement : transitions courtes sur les jetons `duree-*` et `courbe-*`, coupées par
+  `prefers-reduced-motion`.
 - Polices embarquées sous licence OFL (avec leur licence) : aucune requête externe.
 
 ## Mise en page

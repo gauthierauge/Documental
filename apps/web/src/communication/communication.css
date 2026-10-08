@@ -29,14 +29,18 @@
   min-height: 0;
 }
 
-.com-espace .ed-editeur,
-.com-espace .ed-zone {
-  height: 100%;
+/* L'éditeur occupe la hauteur de l'écran ; les fichiers joints viennent dessous. */
+.com-espace .ed-zone:not([hidden]) {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  height: max(20rem, calc(100dvh - var(--espace-8) * 5));
 }
 
 .com-espace .ed-texte {
   flex: 1;
   min-height: 0;
+  resize: none;
 }
 
 .com-chat > .ui-vide {
@@ -115,8 +119,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--taille-cible);
-  height: var(--taille-cible);
+  width: var(--espace-6);
+  height: var(--espace-6);
   flex: none;
   border-radius: var(--rayon-rond);
   background: var(--couleur-accent-doux);
@@ -186,30 +190,46 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--espace-3);
+  gap: var(--espace-2);
   min-height: 0;
   margin: 0;
   padding: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   list-style: none;
 }
 
+/* Des bulles : les miennes à droite, celles des autres à gauche. */
 .com-message {
   display: flex;
   flex-direction: column;
-  gap: var(--espace-1);
-  padding: var(--espace-3);
-  border-radius: var(--rayon-moyen);
+  gap: var(--trait-epais);
+  align-self: flex-start;
+  max-width: 88%;
+  padding: var(--espace-2) var(--espace-3);
+  border-radius: var(--rayon-grand);
+  border-end-start-radius: var(--rayon-petit);
   background: var(--couleur-surface-enfoncee);
+  font: var(--typo-petit);
 }
 
 .com-message-moi {
+  align-self: flex-end;
+  border-end-start-radius: var(--rayon-grand);
+  border-end-end-radius: var(--rayon-petit);
   background: var(--couleur-accent-doux);
+  color: var(--couleur-accent-sur-doux);
 }
 
 .com-message-meta {
+  gap: var(--espace-3);
   color: var(--couleur-texte-attenue);
-  font: var(--typo-petit);
+  font: var(--typo-legende);
+}
+
+.com-message-moi .com-message-meta {
+  color: inherit;
 }
 
 .com-message p {
@@ -220,10 +240,33 @@
 
 .com-formulaire {
   display: flex;
-  flex-direction: column;
-  gap: var(--espace-3);
+  align-items: flex-end;
+  gap: var(--espace-2);
   padding-block-start: var(--espace-3);
   border-top: var(--trait-fin) solid var(--couleur-bordure);
+}
+
+.com-formulaire .ui-champ-bloc {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Le libellé reste lu par les lecteurs d'écran ; à l'œil, le champ parle de lui-même. */
+.com-formulaire .ui-libelle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.com-formulaire .ui-champ-long {
+  min-height: var(--champ-hauteur);
+  max-height: 30dvh;
+  font: var(--typo-petit);
+  line-height: var(--interligne-normal);
+  resize: none;
 }
 
 @media (max-width: 64rem) {

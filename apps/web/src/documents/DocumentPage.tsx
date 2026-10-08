@@ -114,20 +114,22 @@ export function DocumentPage({ id }: { id: string }) {
                   Insérer une image
                 </Button>
               )}
-              <Button
-                variant={apercu ? 'discret' : 'secondaire'}
-                aria-pressed={!apercu}
-                onClick={() => setApercu(false)}
-              >
-                Rédiger
-              </Button>
-              <Button
-                variant={apercu ? 'secondaire' : 'discret'}
-                aria-pressed={apercu}
-                onClick={() => setApercu(true)}
-              >
-                Aperçu
-              </Button>
+              <div className="ui-segment">
+                <Button
+                  variant={apercu ? 'discret' : 'secondaire'}
+                  aria-pressed={!apercu}
+                  onClick={() => setApercu(false)}
+                >
+                  Rédiger
+                </Button>
+                <Button
+                  variant={apercu ? 'secondaire' : 'discret'}
+                  aria-pressed={apercu}
+                  onClick={() => setApercu(true)}
+                >
+                  Aperçu
+                </Button>
+              </div>
             </div>
           ) : null
         }

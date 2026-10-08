@@ -10,7 +10,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--espace-3);
-  width: calc(var(--espace-8) * 3.5);
+  width: calc(var(--espace-8) * 3.75);
   height: 100dvh;
   padding: var(--espace-3);
   overflow-y: auto;
@@ -27,7 +27,7 @@
 
 .ui-cote-tete .ui-marque {
   min-width: 0;
-  padding-inline: var(--navigation-espace-x);
+  padding-inline: var(--espace-2);
   overflow-wrap: anywhere;
 }
 
@@ -36,7 +36,17 @@
 }
 
 .ui-replier {
-  padding-inline: var(--espace-3);
+  padding-inline: 0;
+}
+
+/* Le bouton qui replie le menu porte un panneau latéral, pas un « hamburger ». */
+.ui-replier .ui-menu-icone {
+  width: var(--espace-5);
+  height: var(--espace-5);
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  mask: var(--icone-panneau) center / contain no-repeat;
 }
 
 .ui-cote-tete .ui-menu-bouton:not(.ui-replier) {
@@ -65,21 +75,46 @@
   gap: var(--espace-2) var(--espace-5);
   padding: var(--espace-2) var(--espace-5);
   border-bottom: var(--trait-fin) solid var(--navigation-bordure);
-  background: var(--navigation-fond);
+  background: color-mix(in oklch, var(--navigation-fond) 82%, transparent);
+  backdrop-filter: blur(var(--espace-3)) saturate(1.6);
 }
 
 .ui-recherche {
   position: relative;
-  flex: 0 1 calc(var(--espace-8) * 5);
+  flex: 0 1 calc(var(--espace-8) * 6);
+}
+
+/* La loupe vit dans le champ. */
+.ui-recherche form::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--espace-3);
+  width: var(--espace-4);
+  height: var(--champ-hauteur);
+  background: var(--couleur-texte-attenue);
+  mask: var(--icone-recherche) center / contain no-repeat;
+  pointer-events: none;
+}
+
+.ui-recherche .ui-champ {
+  padding-inline-start: calc(var(--espace-3) + var(--espace-4) + var(--espace-2));
+  border-color: var(--couleur-bordure);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.ui-recherche .ui-champ:focus-visible {
+  border-color: var(--couleur-focus);
+  background: var(--champ-fond);
 }
 
 .ui-recherche-resultats {
   position: absolute;
   inset-inline: 0;
-  top: calc(100% + var(--espace-1));
+  top: calc(100% + var(--espace-2));
   padding: var(--espace-2);
   border: var(--trait-fin) solid var(--couleur-bordure);
-  border-radius: var(--rayon-moyen);
+  border-radius: var(--rayon-grand);
   background: var(--couleur-surface-elevee);
   box-shadow: var(--ombre-flottante);
 }

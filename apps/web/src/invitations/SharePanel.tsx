@@ -50,7 +50,7 @@ export function SharePanel({
         {...popover.panelProps}
         role="dialog"
         aria-label={`Partager « ${documentName} »`}
-        className="inv-popover"
+        className="inv-popover ui-flottant"
       >
         <div className="inv-entete">
           <h2 className="inv-popover-titre">Partager « {documentName} »</h2>

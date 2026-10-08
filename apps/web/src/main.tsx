@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import '@documental/ui/polices.css';
 import '@documental/ui/jetons.css';
+import '@documental/ui/icones.css';
 import '@documental/ui/base.css';
 import { applyAppearance } from './ui/AppearanceSwitch';
 

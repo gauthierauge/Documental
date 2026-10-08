@@ -2,7 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-2);
+  gap: var(--espace-1) var(--espace-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -13,7 +13,17 @@
 .doc-fil li + li::before {
   content: '/';
   margin-inline-end: var(--espace-2);
-  color: var(--couleur-texte-attenue);
+  color: var(--couleur-bordure-forte);
+}
+
+.doc-fil a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.doc-fil a:hover {
+  color: var(--couleur-lien);
+  text-decoration: underline;
 }
 
 .doc-fil [aria-current='page'] {
@@ -22,26 +32,41 @@
 }
 
 .doc-nom {
+  vertical-align: middle;
   display: inline-flex;
   align-items: center;
   gap: var(--espace-2);
+  color: var(--couleur-texte);
   font-weight: var(--graisse-moyenne);
+  text-decoration: none;
+}
+
+.doc-nom:hover {
+  color: var(--couleur-lien);
+  text-decoration: underline;
 }
 
 .doc-nom::before {
   content: '';
   flex: none;
-  width: var(--espace-4);
-  height: var(--espace-4);
-  border: var(--trait-fin) solid var(--couleur-bordure-forte);
-  border-radius: var(--rayon-petit);
-  background: var(--couleur-surface-enfoncee);
+  width: var(--espace-5);
+  height: var(--espace-5);
+  background: var(--couleur-texte-attenue);
+  mask: var(--icone-fichier) center / var(--espace-5) no-repeat;
+}
+
+/* Sur un écran étroit, le tableau défile : le nom garde une largeur lisible. */
+.ui-tableau .doc-nom {
+  min-width: min(14rem, 55vw);
+}
+
+.doc-nom-text::before {
+  mask-image: var(--icone-document);
 }
 
 .doc-nom-folder::before {
-  border-color: var(--couleur-accent);
-  border-top-left-radius: 0;
-  background: var(--couleur-accent-doux);
+  background: var(--couleur-accent);
+  mask-image: var(--icone-dossier);
 }
 
 .doc-actions {
@@ -71,8 +96,13 @@
 .doc-partages li {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--espace-2) var(--espace-3);
+  align-items: center;
+  gap: var(--espace-1) var(--espace-3);
+  min-height: var(--taille-cible);
+}
+
+.doc-partages li + li {
+  border-block-start: var(--trait-fin) solid var(--couleur-bordure);
 }
 
 .doc-discret {
@@ -90,7 +120,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--espace-3) var(--espace-5);
-  padding-bottom: var(--espace-3);
+  padding-bottom: var(--espace-4);
   border-bottom: var(--trait-fin) solid var(--couleur-bordure);
 }
 
@@ -120,8 +150,9 @@
 
 .doc-barre-droite {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-3);
+  gap: var(--espace-2) var(--espace-3);
 }
 
 .doc-etats {
@@ -134,12 +165,27 @@
 .doc-etat {
   display: inline-flex;
   align-items: center;
-  gap: var(--espace-1);
-  padding: 0 var(--espace-2);
+  gap: var(--espace-2);
+  padding: var(--trait-fin) var(--espace-3);
   border-radius: var(--rayon-rond);
   background: var(--couleur-surface-enfoncee);
   color: var(--couleur-texte-attenue);
-  font: var(--typo-petit);
+  box-shadow: inset 0 0 0 var(--trait-fin) color-mix(in oklch, currentColor 18%, transparent);
+  font: var(--typo-legende);
+}
+
+/* Tant que l'enregistrement est en cours, la pastille respire. */
+@media (prefers-reduced-motion: no-preference) {
+  .doc-etat-enregistrement::before,
+  .doc-etat-chargement::before {
+    animation: doc-pouls 0.9s var(--courbe-standard) infinite alternate;
+  }
+}
+
+@keyframes doc-pouls {
+  to {
+    opacity: 0.25;
+  }
 }
 
 .doc-etat::before {
@@ -186,11 +232,12 @@
   justify-content: center;
   width: var(--taille-cible);
   height: var(--taille-cible);
-  border: 2px solid var(--couleur-fond);
+  border: var(--trait-epais) solid var(--couleur-fond);
   border-radius: var(--rayon-rond);
   color: #fff;
-  font: var(--typo-petit);
-  font-weight: var(--graisse-moyenne);
+  font: var(--typo-legende);
+  font-weight: var(--graisse-forte);
+  letter-spacing: 0.02em;
 }
 
 .doc-avatar-moi {
@@ -209,6 +256,12 @@
   border-radius: var(--rayon-rond);
   background: none;
   cursor: pointer;
+  transition: translate var(--duree-rapide) var(--courbe-standard);
+}
+
+.doc-avatar-bouton:hover {
+  position: relative;
+  translate: 0 calc(var(--trait-epais) * -1);
 }
 
 .doc-avatar-bouton:focus-visible {
@@ -224,10 +277,31 @@
   font: var(--typo-legende);
 }
 
+/* L'aperçu reprend la feuille de l'éditeur : passer de l'un à l'autre ne déplace rien. */
 .doc-contenu {
-  max-width: var(--largeur-contenu);
-  color: var(--couleur-texte);
+  padding: var(--espace-5) var(--espace-6);
+  border: var(--trait-fin) solid var(--carte-bordure);
+  border-radius: var(--carte-rayon);
+  background: var(--carte-fond);
+  color: var(--carte-texte);
+  box-shadow: var(--carte-ombre);
   font: var(--typo-corps);
+  line-height: 1.7;
+}
+
+.doc-contenu > * {
+  max-width: 72ch;
+}
+
+.doc-contenu > .doc-code,
+.doc-contenu > :has(> .doc-image) {
+  max-width: none;
+}
+
+@media (max-width: 48rem) {
+  .doc-contenu {
+    padding: var(--espace-4);
+  }
 }
 
 .doc-contenu > * + * {
@@ -294,7 +368,9 @@
 
 .doc-vues {
   display: flex;
-  gap: var(--espace-1);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2);
 }
 
 .ed-zone[hidden] {
@@ -313,9 +389,14 @@
 .doc-piece {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--espace-2) var(--espace-3);
-  padding-block: var(--espace-2);
+  align-items: center;
+  gap: var(--espace-1) var(--espace-3);
+  min-height: var(--taille-cible);
+  padding-block: var(--espace-1);
+}
+
+.doc-piece > .ui-bouton {
+  margin-inline-start: auto;
 }
 
 .doc-piece + .doc-piece {
@@ -323,21 +404,70 @@
 }
 
 .doc-piece-nom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-2);
   font-weight: var(--graisse-moyenne);
+  overflow-wrap: anywhere;
+}
+
+.doc-piece-nom::before {
+  content: '';
+  flex: none;
+  width: var(--espace-5);
+  height: var(--espace-5);
+  background: var(--couleur-texte-attenue);
+  mask: var(--icone-fichier) center / contain no-repeat;
 }
 
 .doc-depot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-3);
-  margin-block-start: var(--espace-4);
+  gap: var(--espace-2) var(--espace-3);
+  margin-block-start: var(--espace-2);
   padding: var(--espace-4);
   border: var(--trait-fin) dashed var(--couleur-bordure-forte);
   border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-enfoncee);
+  transition:
+    background-color var(--duree-rapide) var(--courbe-standard),
+    border-color var(--duree-rapide) var(--courbe-standard);
+}
+
+.doc-depot::before {
+  content: '';
+  flex: none;
+  width: var(--espace-5);
+  height: var(--espace-5);
+  background: var(--couleur-texte-attenue);
+  mask: var(--icone-depot) center / contain no-repeat;
+}
+
+.doc-depot input[type='file'] {
+  max-width: 100%;
+  font: var(--typo-petit);
+}
+
+.doc-depot input[type='file']::file-selector-button {
+  min-height: var(--espace-6);
+  margin-inline-end: var(--espace-3);
+  padding: 0 var(--espace-3);
+  border: var(--trait-fin) solid var(--bouton-secondaire-bordure);
+  border-radius: var(--bouton-rayon);
+  background: var(--bouton-secondaire-fond);
+  color: var(--bouton-secondaire-texte);
+  font: var(--typo-petit);
+  font-weight: var(--graisse-moyenne);
+  cursor: pointer;
+}
+
+.doc-depot input[type='file']::file-selector-button:hover {
+  background: var(--bouton-secondaire-fond-survol);
 }
 
 .doc-depot-survol {
   border-color: var(--couleur-accent);
+  border-style: solid;
   background: var(--couleur-accent-doux);
 }

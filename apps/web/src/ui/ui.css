@@ -1,6 +1,7 @@
 .ui-nav-lien {
   display: flex;
   align-items: center;
+  gap: var(--espace-2);
   min-height: var(--navigation-hauteur);
   padding: 0 var(--navigation-espace-x);
   border-radius: var(--rayon-moyen);
@@ -9,9 +10,13 @@
   font-weight: var(--graisse-moyenne);
   text-decoration: none;
   white-space: nowrap;
+  transition:
+    background-color var(--duree-rapide) var(--courbe-standard),
+    color var(--duree-rapide) var(--courbe-standard);
 }
 
 .ui-nav-lien:hover {
+  background: var(--couleur-surface-enfoncee);
   color: var(--navigation-texte-survol);
 }
 
@@ -22,8 +27,9 @@
 
 .ui-apparence {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-2);
+  gap: var(--espace-2) var(--espace-3);
 }
 
 .ui-page {
@@ -60,22 +66,28 @@
   font: var(--typo-bouton);
   text-decoration: none;
   cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--duree-rapide) var(--courbe-standard),
+    border-color var(--duree-rapide) var(--courbe-standard),
+    color var(--duree-rapide) var(--courbe-standard),
+    box-shadow var(--duree-rapide) var(--courbe-standard),
+    translate var(--duree-rapide) var(--courbe-standard);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .ui-bouton {
-    transition: background-color var(--duree-rapide) var(--courbe-standard);
-  }
+.ui-bouton:active:not(:disabled) {
+  translate: 0 var(--trait-fin);
 }
 
 .ui-bouton:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .ui-bouton-primaire {
   background: var(--bouton-primaire-fond);
   color: var(--bouton-primaire-texte);
+  box-shadow: var(--ombre-carte);
 }
 
 .ui-bouton-primaire:hover:not(:disabled) {
@@ -95,7 +107,6 @@
 .ui-bouton-discret {
   background: transparent;
   color: var(--bouton-discret-texte);
-  text-decoration: underline;
 }
 
 .ui-bouton-discret:hover:not(:disabled) {
@@ -112,6 +123,36 @@
   background: var(--bouton-danger-fond-survol);
 }
 
+.ui-segment {
+  display: inline-flex;
+  gap: var(--trait-epais);
+  padding: var(--trait-epais);
+  border-radius: var(--bouton-rayon);
+  background: var(--couleur-surface-enfoncee);
+  box-shadow: inset 0 0 0 var(--trait-fin) var(--couleur-bordure);
+}
+
+.ui-segment .ui-bouton,
+.ui-segment .ui-bouton:hover:not(:disabled) {
+  min-height: calc(var(--bouton-hauteur) - var(--trait-epais) * 2);
+  padding-inline: var(--espace-3);
+  border-color: transparent;
+  border-radius: calc(var(--bouton-rayon) - var(--trait-epais));
+  background: transparent;
+  color: var(--couleur-texte-attenue);
+}
+
+.ui-segment .ui-bouton:hover:not(:disabled) {
+  color: var(--couleur-texte);
+}
+
+.ui-segment .ui-bouton[aria-pressed='true'],
+.ui-segment .ui-bouton[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--couleur-surface);
+  color: var(--couleur-texte);
+  box-shadow: var(--ombre-carte);
+}
+
 .ui-separateur {
   margin: 0;
   color: var(--couleur-texte-attenue);
@@ -122,13 +163,18 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-3);
+  gap: var(--espace-2) var(--espace-3);
 }
 
 .ui-formulaire {
   display: flex;
   flex-direction: column;
   gap: var(--espace-4);
+}
+
+/* Hors des écrans de connexion, le bouton d'un formulaire garde sa largeur naturelle. */
+.ui-formulaire > .ui-bouton {
+  align-self: flex-start;
 }
 
 .ui-champ-bloc {
@@ -138,7 +184,7 @@
 }
 
 .ui-libelle {
-  font: var(--typo-corps);
+  font: var(--typo-petit);
   font-weight: var(--graisse-moyenne);
 }
 
@@ -151,6 +197,42 @@
   background: var(--champ-fond);
   color: var(--champ-texte);
   font: var(--typo-corps);
+  transition:
+    border-color var(--duree-rapide) var(--courbe-standard),
+    box-shadow var(--duree-rapide) var(--courbe-standard);
+}
+
+.ui-champ::placeholder {
+  color: var(--champ-aide);
+  opacity: 1;
+}
+
+.ui-champ:hover:not(:disabled, :focus-visible) {
+  border-color: var(--couleur-texte-attenue);
+}
+
+.ui-champ:focus-visible {
+  border-color: var(--couleur-focus);
+  outline-offset: calc(var(--trait-fin) * -1);
+  box-shadow: 0 0 0 var(--espace-1) color-mix(in oklch, var(--couleur-focus) 22%, transparent);
+}
+
+.ui-champ:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+select.ui-champ {
+  padding-inline-end: var(--espace-6);
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right calc(var(--espace-3) + var(--espace-1) + 1px) center,
+    right var(--espace-3) center;
+  background-size: calc(var(--espace-1) + 1px) calc(var(--espace-1) + 1px);
+  background-repeat: no-repeat;
 }
 
 .ui-champ-compact {
@@ -158,11 +240,20 @@
 }
 
 .ui-champ-long {
+  min-height: calc(3lh + var(--espace-2) * 2);
+  max-height: 40dvh;
   padding-block: var(--espace-2);
+  field-sizing: content;
 }
 
 .ui-champ[aria-invalid='true'] {
   border-color: var(--champ-bordure-erreur);
+}
+
+.ui-champ[aria-invalid='true']:focus-visible {
+  outline-color: var(--champ-bordure-erreur);
+  box-shadow: 0 0 0 var(--espace-1)
+    color-mix(in oklch, var(--champ-bordure-erreur) 22%, transparent);
 }
 
 .ui-aide {
@@ -173,6 +264,7 @@
 .ui-erreur {
   color: var(--champ-erreur);
   font: var(--typo-petit);
+  font-weight: var(--graisse-moyenne);
 }
 
 .ui-case {
@@ -213,6 +305,8 @@
 .ui-carte-titre {
   margin: 0;
   font: var(--typo-titre-3);
+  font-size: var(--taille-texte-grand);
+  letter-spacing: var(--typo-titre-3-letter-spacing);
 }
 
 .ui-carte-actions {
@@ -229,6 +323,11 @@
   border: var(--trait-fin) solid var(--carte-bordure);
   border-radius: var(--carte-rayon);
   background: var(--tableau-fond);
+  box-shadow: var(--carte-ombre);
+}
+
+.ui-tableau-cadre:focus-visible {
+  outline-offset: calc(var(--focus-epaisseur) * -1);
 }
 
 .ui-tableau {
@@ -239,16 +338,22 @@
 }
 
 .ui-tableau th {
-  padding: var(--tableau-espace-y) var(--tableau-espace-x);
+  padding: var(--espace-2) var(--tableau-espace-x);
   background: var(--tableau-entete-fond);
   color: var(--tableau-entete-texte);
   font: var(--typo-legende);
   text-align: start;
+  white-space: nowrap;
 }
 
 .ui-tableau td {
   padding: var(--tableau-espace-y) var(--tableau-espace-x);
   border-top: var(--trait-fin) solid var(--tableau-ligne-bordure);
+  vertical-align: middle;
+}
+
+.ui-tableau tbody tr {
+  transition: background-color var(--duree-rapide) var(--courbe-standard);
 }
 
 .ui-tableau tbody tr:hover {
@@ -260,11 +365,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Dans une ligne de tableau, les actions se font discrètes : la ligne reste lisible. */
+@media (pointer: fine) {
+  .ui-tableau .ui-bouton {
+    min-height: var(--espace-6);
+    padding-inline: var(--espace-2);
+    font-size: var(--taille-texte-petit);
+  }
+
+  .ui-tableau td:has(.ui-bouton) {
+    padding-block: var(--espace-2);
+  }
+}
+
 .ui-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0 var(--badge-espace-x);
+  gap: var(--espace-1);
+  padding: var(--trait-fin) var(--badge-espace-x);
   border-radius: var(--badge-rayon);
+  box-shadow: inset 0 0 0 var(--trait-fin) color-mix(in oklch, currentColor 18%, transparent);
   font: var(--typo-legende);
   white-space: nowrap;
 }
@@ -295,26 +415,54 @@
 }
 
 .ui-message {
+  --message-icone: var(--icone-info);
+
+  position: relative;
   margin: 0;
   padding: var(--espace-3) var(--espace-4);
+  padding-inline-start: calc(var(--espace-4) + var(--espace-5) + var(--espace-3));
   border-radius: var(--rayon-moyen);
   background: var(--badge-neutre-fond);
   color: var(--badge-neutre-texte);
+  box-shadow: inset 0 0 0 var(--trait-fin) color-mix(in oklch, currentColor 18%, transparent);
+  font: var(--typo-petit);
+}
+
+.ui-message::before {
+  content: '';
+  position: absolute;
+  inset-block-start: var(--espace-3);
+  inset-inline-start: var(--espace-4);
+  width: var(--espace-5);
+  height: 1lh;
+  background: currentColor;
+  mask: var(--message-icone) center / var(--espace-5) no-repeat;
 }
 
 .ui-message-succes {
+  --message-icone: var(--icone-succes);
+
   background: var(--badge-succes-fond);
   color: var(--badge-succes-texte);
 }
 
 .ui-message-attention {
+  --message-icone: var(--icone-attention);
+
   background: var(--badge-attention-fond);
   color: var(--badge-attention-texte);
 }
 
 .ui-message-danger {
+  --message-icone: var(--icone-danger);
+
   background: var(--badge-danger-fond);
   color: var(--badge-danger-texte);
+}
+
+.ui-message a {
+  color: inherit;
+  font-weight: var(--graisse-moyenne);
 }
 
 .ui-vide {
@@ -328,10 +476,78 @@
 }
 
 .ui-vide p {
+  max-width: 40ch;
   margin: 0;
 }
 
 .ui-vide-titre {
-  font: var(--typo-titre-3);
   color: var(--couleur-texte);
+  font: var(--typo-corps);
+  font-weight: var(--graisse-forte);
+}
+
+.ui-vide-texte {
+  font: var(--typo-petit);
+}
+
+.ui-vide > .ui-bouton {
+  margin-block-start: var(--espace-2);
+}
+
+.ui-squelette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+}
+
+.ui-squelette span[aria-hidden] {
+  height: var(--taille-cible);
+  border-radius: var(--rayon-moyen);
+  background: var(--couleur-surface-enfoncee);
+}
+
+.ui-squelette span[aria-hidden]:nth-child(odd) {
+  width: 92%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ui-squelette span[aria-hidden] {
+    animation: ui-pouls 1.4s var(--courbe-standard) infinite alternate;
+  }
+
+  .ui-squelette span[aria-hidden]:nth-child(3n) {
+    animation-delay: var(--duree-normale);
+  }
+}
+
+@keyframes ui-pouls {
+  to {
+    opacity: 0.45;
+  }
+}
+
+/* Entrée des panneaux flottants (résultats de recherche, partage). */
+.ui-flottant {
+  transition:
+    opacity var(--duree-normale) var(--courbe-sortie),
+    translate var(--duree-normale) var(--courbe-sortie);
+}
+
+@starting-style {
+  .ui-flottant {
+    opacity: 0;
+    translate: 0 calc(var(--espace-1) * -1);
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-bouton,
+  .ui-badge,
+  .ui-message {
+    border: var(--trait-fin) solid currentColor;
+  }
+
+  .ui-message::before {
+    background: CanvasText;
+  }
 }

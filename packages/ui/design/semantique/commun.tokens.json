@@ -61,7 +61,7 @@
         "fontWeight": "{graisse.forte}",
         "lineHeight": "{interligne.serre}",
         "letterSpacing": {
-          "value": 0,
+          "value": -0.035,
           "unit": "rem"
         }
       }
@@ -74,7 +74,7 @@
         "fontWeight": "{graisse.forte}",
         "lineHeight": "{interligne.serre}",
         "letterSpacing": {
-          "value": 0,
+          "value": -0.025,
           "unit": "rem"
         }
       }
@@ -87,7 +87,7 @@
         "fontWeight": "{graisse.forte}",
         "lineHeight": "{interligne.serre}",
         "letterSpacing": {
-          "value": 0,
+          "value": -0.015,
           "unit": "rem"
         }
       }

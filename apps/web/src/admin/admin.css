@@ -19,11 +19,24 @@
 .adm-brand {
   display: flex;
   align-items: center;
+  gap: var(--espace-2);
   min-height: var(--taille-cible);
-  padding: 0 var(--navigation-espace-x);
+  margin-block-end: var(--espace-2);
+  padding: 0 var(--espace-2);
   color: var(--couleur-texte);
   font: var(--typo-titre-3);
+  font-size: var(--taille-texte-grand);
+  letter-spacing: var(--typo-titre-3-letter-spacing);
   text-decoration: none;
+}
+
+.adm-brand::before {
+  content: '';
+  flex: none;
+  width: var(--espace-5);
+  height: var(--espace-5);
+  background: var(--couleur-accent);
+  mask: var(--icone-document) center / contain no-repeat;
 }
 
 .adm-rule {
@@ -47,6 +60,17 @@
   color: var(--couleur-texte);
   font: var(--typo-legende);
   text-decoration: none;
+  transition: background-color var(--duree-rapide) var(--courbe-standard);
+}
+
+.adm-me:hover {
+  background: var(--couleur-surface-enfoncee);
+}
+
+.adm-me > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .adm-me small {
@@ -112,10 +136,22 @@
   box-shadow: var(--carte-ombre);
   color: var(--carte-texte);
   text-decoration: none;
+  transition:
+    border-color var(--duree-rapide) var(--courbe-standard),
+    box-shadow var(--duree-normale) var(--courbe-standard),
+    translate var(--duree-normale) var(--courbe-standard);
+}
+
+.adm-tile:hover {
+  border-color: var(--couleur-bordure-forte);
+  box-shadow: var(--ombre-flottante);
+  translate: 0 calc(var(--trait-epais) * -1);
 }
 
 .adm-tile strong {
   font: var(--typo-titre-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--typo-titre-2-letter-spacing);
 }
 
 .adm-tile-label {
@@ -183,6 +219,11 @@
 .adm-back {
   font: var(--typo-petit);
   text-decoration: none;
+}
+
+.adm-back:hover {
+  color: var(--couleur-lien);
+  text-decoration: underline;
 }
 
 .adm-row-actions {

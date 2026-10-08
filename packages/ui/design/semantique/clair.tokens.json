@@ -115,7 +115,7 @@
           "color": {
             "colorSpace": "srgb",
             "components": [0, 0, 0],
-            "alpha": 0.08,
+            "alpha": 0.04,
             "hex": "#000000"
           },
           "offsetX": {
@@ -127,11 +127,35 @@
             "unit": "px"
           },
           "blur": {
-            "value": 3,
+            "value": 2,
             "unit": "px"
           },
           "spread": {
             "value": 0,
+            "unit": "px"
+          }
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.03,
+            "hex": "#000000"
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 2,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 6,
+            "unit": "px"
+          },
+          "spread": {
+            "value": -1,
             "unit": "px"
           }
         }
@@ -144,7 +168,7 @@
           "color": {
             "colorSpace": "srgb",
             "components": [0, 0, 0],
-            "alpha": 0.12,
+            "alpha": 0.06,
             "hex": "#000000"
           },
           "offsetX": {
@@ -152,15 +176,39 @@
             "unit": "px"
           },
           "offsetY": {
-            "value": 8,
+            "value": 4,
             "unit": "px"
           },
           "blur": {
-            "value": 24,
+            "value": 8,
             "unit": "px"
           },
           "spread": {
+            "value": -2,
+            "unit": "px"
+          }
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.1,
+            "hex": "#000000"
+          },
+          "offsetX": {
             "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 16,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 32,
+            "unit": "px"
+          },
+          "spread": {
+            "value": -8,
             "unit": "px"
           }
         }

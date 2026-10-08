@@ -31,23 +31,43 @@
   box-sizing: border-box;
   width: 100%;
   min-height: max(20rem, calc(100dvh - 16rem));
-  padding: var(--espace-5);
+  padding: var(--espace-5) var(--espace-6);
   border: var(--trait-fin) solid var(--carte-bordure);
   border-radius: var(--carte-rayon);
   background: var(--carte-fond);
   color: var(--carte-texte);
+  box-shadow: var(--carte-ombre);
+  caret-color: var(--couleur-accent);
   font: var(--typo-corps);
-  line-height: 1.6;
+  line-height: 1.7;
   resize: vertical;
+  transition:
+    border-color var(--duree-rapide) var(--courbe-standard),
+    box-shadow var(--duree-rapide) var(--courbe-standard);
 }
 
 .ed-texte:focus-visible {
-  outline: 2px solid var(--couleur-focus);
-  outline-offset: 2px;
+  border-color: var(--couleur-focus);
+  outline: none;
+  box-shadow:
+    0 0 0 var(--espace-1) color-mix(in oklch, var(--couleur-focus) 22%, transparent),
+    var(--carte-ombre);
 }
 
 .ed-texte:disabled {
   opacity: 0.6;
+}
+
+@media (max-width: 48rem) {
+  .ed-texte {
+    padding: var(--espace-4);
+  }
+}
+
+@media (forced-colors: active) {
+  .ed-texte:focus-visible {
+    outline: var(--focus-epaisseur) solid Highlight;
+  }
 }
 
 .ed-zone {
@@ -71,8 +91,8 @@
   position: absolute;
   bottom: 100%;
   left: 0;
-  padding: 0 var(--espace-1);
-  border-radius: var(--rayon-petit);
+  padding: 0 var(--espace-2);
+  border-radius: var(--rayon-petit) var(--rayon-petit) var(--rayon-petit) 0;
   color: #fff;
   font: var(--typo-legende);
   white-space: nowrap;
@@ -81,6 +101,7 @@
 .ed-curseur-bas .ed-curseur-nom {
   top: 100%;
   bottom: auto;
+  border-radius: 0 var(--rayon-petit) var(--rayon-petit) var(--rayon-petit);
 }
 
 .ed-presents {

@@ -134,7 +134,7 @@
     "titre-1": {
       "$type": "dimension",
       "$value": {
-        "value": 2,
+        "value": 1.75,
         "unit": "rem"
       }
     }
@@ -216,12 +216,23 @@
         "value": 200,
         "unit": "ms"
       }
+    },
+    "lente": {
+      "$type": "duration",
+      "$value": {
+        "value": 320,
+        "unit": "ms"
+      }
     }
   },
   "courbe": {
     "standard": {
       "$type": "cubicBezier",
       "$value": [0.2, 0, 0, 1]
+    },
+    "sortie": {
+      "$type": "cubicBezier",
+      "$value": [0.16, 1, 0.3, 1]
     }
   },
   "palette": {

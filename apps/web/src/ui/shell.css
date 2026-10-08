@@ -2,7 +2,7 @@
   position: absolute;
   inset-inline-start: var(--espace-3);
   inset-block-start: var(--espace-3);
-  z-index: 10;
+  z-index: 20;
   padding: var(--espace-2) var(--espace-3);
   border-radius: var(--rayon-moyen);
   background: var(--couleur-surface-elevee);
@@ -17,11 +17,23 @@
 .ui-marque {
   display: inline-flex;
   align-items: center;
+  gap: var(--espace-2);
   min-height: var(--taille-cible);
   font: var(--typo-titre-3);
-  font-family: var(--police-titres);
+  font-size: var(--taille-texte-grand);
+  letter-spacing: var(--typo-titre-3-letter-spacing);
   color: var(--couleur-texte);
   text-decoration: none;
+}
+
+/* Le sigle : une feuille, à la couleur de l'accent. */
+.ui-marque::before {
+  content: '';
+  flex: none;
+  width: var(--espace-5);
+  height: var(--espace-5);
+  background: var(--couleur-accent);
+  mask: var(--icone-document) center / contain no-repeat;
 }
 
 .ui-nav {
@@ -53,7 +65,7 @@
   padding: var(--espace-3) var(--espace-5);
   border-top: var(--trait-fin) solid var(--couleur-bordure);
   color: var(--couleur-texte-attenue);
-  font: var(--typo-petit);
+  font: var(--typo-legende);
 }
 
 @media (max-width: 48rem) {
